@@ -11,7 +11,8 @@ module Language.Dash.Parser
 
 import Language.Dash.Term
 
-import Prelude (return, ($), (.), fmap, read, foldl1)
+import Control.Applicative ((<$>))
+import Prelude (return, ($), (.), read, foldl1)
 import Text.Trifecta
 
 lambda :: Parser Term
@@ -44,7 +45,7 @@ expression = do
 
 literal :: Parser Term
 literal =
-  fmap (Literal . read) (some digit)
+  Literal . read <$> some digit
 
 application :: Parser Term
 application = do

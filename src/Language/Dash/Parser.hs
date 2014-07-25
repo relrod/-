@@ -5,7 +5,6 @@ module Language.Dash.Parser
        , variable
        , expression
        , expressions
-       , application
        , literal) where
 
 
@@ -46,13 +45,6 @@ expression = do
 literal :: Parser Term
 literal =
   Literal . read <$> some digit
-
-application :: Parser Term
-application = do
-  e <- expression
-  spaces
-  var <- expression
-  return $ Apply e var
 
 expressions :: Parser [Term]
 expressions = do

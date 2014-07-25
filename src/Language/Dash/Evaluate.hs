@@ -10,7 +10,7 @@ import Prelude (show, error, ($), (++))
 
 eval :: Environment -> Term -> Produce
 eval e (Variable s) = getEnv e s
-eval _ (Literal y) = Value y
+eval _ (LiteralInt y) = Value y
 eval (Environment e) (Lambda n l) = Function (\v -> eval (Environment $ (n, v) : e) l)
 eval e (Apply t1 t2) =
   case eval e t1 of

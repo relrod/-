@@ -8,5 +8,5 @@ data Term
   = Variable String
   | Apply Term Term
   | Lambda String Term
-  | Literal Int
+  | LiteralInt Int
   deriving (Show, Eq, Ord)

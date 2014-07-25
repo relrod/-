@@ -5,7 +5,7 @@ module Language.Dash.Parser
        , variable
        , expression
        , expressions
-       , literal) where
+       , literalInt) where
 
 
 import Language.Dash.Term
@@ -38,13 +38,13 @@ variable = do
 expression :: Parser Term
 expression = do
   _ <- char '('
-  x <- choice [variable, lambda, literal]
+  x <- choice [variable, lambda, literalInt]
   _ <- char ')'
   return x
 
-literal :: Parser Term
-literal =
-  Literal . read <$> some digit
+literalInt :: Parser Term
+literalInt =
+  LiteralInt . read <$> some digit
 
 expressions :: Parser [Term]
 expressions = do

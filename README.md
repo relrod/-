@@ -9,7 +9,7 @@ Types aren't yet implemented, so there is no type syntax yet.
 There's also no syntax for persistence, yet.
 
 ```
-((λx. (λy. ($x)))(1234))       # const.
+((λx. (λy. $x) 1234) "hello const")  # Const!
 ```
 
 # License

@@ -30,20 +30,23 @@ lambda =
 
 variable :: Parser Term
 variable = do
-  spaces
   _ <- char '$'
   name <- some alphaNum
   return $ Variable name
 
 expression :: Parser Term
 expression = do
-  _ <- char '('
-  x <- choice [variable, lambda, literalInt]
-  _ <- char ')'
-  return x
+  spaces
+  choice [variable, lambda', literalInt]
+  where
+    lambda' = do
+      _ <- char '('
+      x <- lambda
+      _ <- char ')'
+      return x
 
 literalInt :: Parser Term
-literalInt =
+literalInt = do
   LiteralInt . read <$> some digit
 
 expressions :: Parser [Term]

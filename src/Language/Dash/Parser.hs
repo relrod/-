@@ -1,3 +1,4 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Language.Dash.Parser
@@ -6,16 +7,25 @@ module Language.Dash.Parser
        , expression
        , expressions
        , literalInt
-       , literalString) where
+       , literalString
+       , runParser) where
 
 
 import Language.Dash.Term
 
-import Control.Applicative ((<$>))
-import Prelude (return, ($), (.), read, foldl1)
-import Text.Trifecta
+import Control.Applicative
+import Control.Monad
+import Prelude (($), (.), read, foldl1, Bool (..))
+import Text.Parser.Token.Style
+import Text.Trifecta as T
 
-lambda :: Parser Term
+newtype DashParser a = DashParser { runParser :: T.Parser a }
+  deriving (Functor,Applicative,Alternative,Monad,T.Parsing,T.CharParsing)
+
+instance T.TokenParsing DashParser where
+  someSpace = buildSomeSpaceParser (DashParser T.someSpace) commentStyle
+
+lambda :: DashParser Term
 lambda =
   let
     l = do
@@ -29,13 +39,13 @@ lambda =
       return $ foldl1 Apply applications
   in choice [l, app]
 
-variable :: Parser Term
+variable :: DashParser Term
 variable = do
   _ <- char '$'
   name <- some alphaNum
   return $ Variable name
 
-expression :: Parser Term
+expression :: DashParser Term
 expression = do
   spaces
   choice [variable, lambda', literalInt, literalString]
@@ -46,17 +56,20 @@ expression = do
       _ <- char ')'
       return x
 
-literalInt :: Parser Term
+literalInt :: DashParser Term
 literalInt =
   Literal . LiteralInt . read <$> some digit
 
-literalString :: Parser Term
+literalString :: DashParser Term
 literalString = do
   x <- between (char '"') (char '"') (some $ noneOf "\"")
   return $ Literal . LiteralString $ x
 
-expressions :: Parser [Term]
+expressions :: DashParser [Term]
 expressions = do
   x <- some expression
   eof
   return x
+
+commentStyle :: CommentStyle
+commentStyle = CommentStyle "" "" "#" False

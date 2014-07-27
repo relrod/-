@@ -22,6 +22,7 @@ library
   -- other-modules:
   other-extensions:    NoImplicitPrelude
   build-depends:       base >= 4 && < 5
+                     , parsers >= 0.10 && < 1
                      , trifecta >= 1.4 && < 2
   hs-source-dirs:      src
   default-language:    Haskell2010
@@ -32,6 +33,7 @@ executable dashrepl
   build-depends:       base >= 4 && < 5
                      , dash
                      , haskeline >= 0.7 && < 1
+                     , parsers >= 0.10 && < 1
                      , transformers >= 0.3 && < 0.5
                      , trifecta >= 1.4 && < 2
   hs-source-dirs:      src

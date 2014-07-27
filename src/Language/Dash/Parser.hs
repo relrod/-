@@ -46,8 +46,8 @@ expression = do
       return x
 
 literalInt :: Parser Term
-literalInt = do
-  LiteralInt . read <$> some digit
+literalInt =
+  Literal . LiteralInt . read <$> some digit
 
 expressions :: Parser [Term]
 expressions = do

@@ -2,11 +2,13 @@
 
 module Language.Dash.Produce (Produce (..)) where
 
-import Prelude (Int, Show (show))
+import Prelude (Show (show))
+
+import Language.Dash.Term
 
 data Produce
   = Function (Produce -> Produce)
-  | Value Int
+  | Value Literal
 
 instance Show Produce where
   show (Function _) = "<function>"

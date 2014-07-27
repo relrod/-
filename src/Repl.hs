@@ -35,4 +35,4 @@ repl = do
         Just input  -> liftIO $ evalString input
 
 evalString :: String -> IO ()
-evalString s = print $ eval mempty <$> parseString expression mempty s
+evalString s = print $ eval mempty <$> parseString (runParser expression) mempty s

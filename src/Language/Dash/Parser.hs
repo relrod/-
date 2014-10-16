@@ -6,6 +6,7 @@ module Language.Dash.Parser
        , variable
        , expression
        , expressions
+       , literalBool
        , literalInt
        , literalString
        , runParser) where
@@ -15,7 +16,7 @@ import Language.Dash.Term
 
 import Control.Applicative
 import Control.Monad
-import Prelude (($), (.), read, foldl1, Bool (..))
+import Prelude (($), (.), (==), read, foldl1, Bool (..))
 import Text.Parser.Token.Style
 import Text.Trifecta as T
 
@@ -48,7 +49,7 @@ variable = do
 expression :: DashParser Term
 expression = do
   spaces
-  choice [variable, lambda', literalInt, literalString]
+  choice [variable, lambda', literalInt, literalString, literalBool]
   where
     lambda' = do
       _ <- char '('
@@ -59,6 +60,13 @@ expression = do
 literalInt :: DashParser Term
 literalInt =
   Literal . LiteralInt . read <$> some digit
+
+literalBool :: DashParser Term
+literalBool = do
+  bool <- choice [string "true", string "false"]
+  if bool == "true"
+    then return $ Literal (LiteralBool True)
+    else return $ Literal (LiteralBool False)
 
 literalString :: DashParser Term
 literalString = do

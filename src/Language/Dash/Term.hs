@@ -2,7 +2,7 @@
 
 module Language.Dash.Term (Literal (..), Term (..)) where
 
-import Prelude (String, Int, Show, Eq, Ord)
+import Prelude (Bool, String, Int, Show, Eq, Ord)
 
 data Term
   = Variable String
@@ -14,4 +14,5 @@ data Term
 data Literal
   = LiteralString String
   | LiteralInt Int
+  | LiteralBool Bool
   deriving (Show, Eq, Ord)

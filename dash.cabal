@@ -21,7 +21,9 @@ library
                        Language.Dash.Produce
   -- other-modules:
   other-extensions:    NoImplicitPrelude
-  build-depends:       base >= 4 && < 5
+  build-depends:       haskeline >= 0.7.1.2,
+                       transformers >= 0.3.0.0,
+                       base >= 4 && < 5
                      , parsers >= 0.10 && < 1
                      , trifecta >= 1.4 && < 2
   hs-source-dirs:      src
@@ -30,7 +32,9 @@ library
 executable dashrepl
   main-is:             Repl.hs
   other-extensions:    NoImplicitPrelude
-  build-depends:       base >= 4 && < 5
+  build-depends:       haskeline >= 0.7.1.2,
+                       transformers >= 0.3.0.0,
+                       base >= 4 && < 5
                      , dash
                      , haskeline >= 0.7 && < 1
                      , parsers >= 0.10 && < 1

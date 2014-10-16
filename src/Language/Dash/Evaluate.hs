@@ -16,4 +16,6 @@ eval e (Apply t1 t2) =
   case eval e t1 of
     Function f -> f $ eval e t2
     Value v -> error $ "Not a lambda: " ++ show v
-
+eval e (If x y z) = do
+  let (Value (LiteralBool res)) = eval e x
+  eval e $ if res then y else z

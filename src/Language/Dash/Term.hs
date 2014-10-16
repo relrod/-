@@ -9,6 +9,7 @@ data Term
   | Apply Term Term
   | Lambda String Term
   | Literal Literal
+  | If Term Term Term
   deriving (Show, Eq, Ord)
 
 data Literal

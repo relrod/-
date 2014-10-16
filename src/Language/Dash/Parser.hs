@@ -46,6 +46,16 @@ variable = do
   name <- some alphaNum
   return $ Variable name
 
+ifExp :: DashParser Term
+ifExp = do
+  _ <- string "if"
+  bool <- expression
+  spaces
+  true <- expression
+  spaces
+  false <- expression
+  return $ If bool true false
+
 expression :: DashParser Term
 expression = do
   spaces
@@ -53,7 +63,7 @@ expression = do
   where
     lambda' = do
       _ <- char '('
-      x <- lambda
+      x <- choice [lambda, ifExp]
       _ <- char ')'
       return x
 

@@ -31,7 +31,7 @@ lambda =
   let
     l = do
       _ <- char 'λ'
-      var <- manyTill anyChar (try (char '.'))
+      var <- manyTill (notChar ' ') (try (char '.'))
       spaces
       body <- lambda
       return $ Lambda var body

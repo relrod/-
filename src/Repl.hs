@@ -10,6 +10,7 @@ import Language.Dash.Evaluate
 import Text.Trifecta
 import System.Console.Haskeline
 import System.Environment (getArgs)
+import System.Exit (exitSuccess)
 import System.IO
 
 main :: IO ()
@@ -30,8 +31,8 @@ repl = do
       minput <- getInputLine "dash> "
       case minput of
         Nothing     -> return ()
-        Just "quit" -> return ()
-        Just "exit" -> return ()
+        Just "quit" -> liftIO exitSuccess
+        Just "exit" -> liftIO exitSuccess
         Just input  -> liftIO $ evalString input
 
 evalString :: String -> IO ()

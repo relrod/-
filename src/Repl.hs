@@ -6,6 +6,7 @@ import Control.Monad.IO.Class
 import Data.Maybe (listToMaybe)
 import Data.Monoid
 import Language.Dash.Parser
+import Language.Dash.Produce
 import Language.Dash.Evaluate
 import Text.Trifecta
 import System.Console.Haskeline
@@ -36,4 +37,7 @@ repl = do
         Just input  -> liftIO $ evalString input
 
 evalString :: String -> IO ()
-evalString s = print $ eval mempty <$> parseString (runParser expression) mempty s
+evalString s = print (runEval s)
+
+runEval :: String -> Result (Maybe Produce)
+runEval s = eval mempty <$> parseString (runParser expression) mempty s

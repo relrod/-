@@ -8,6 +8,9 @@ import Data.Monoid
 import Language.Dash.Parser
 import Language.Dash.Produce
 import Language.Dash.Evaluate
+import qualified Language.Haskell.HsColour as HsColour
+import qualified Language.Haskell.HsColour.Colourise as HsColour
+import qualified Language.Haskell.HsColour.Output as HsColour
 import Text.Trifecta
 import System.Console.Haskeline
 import System.Environment (getArgs)
@@ -37,7 +40,15 @@ repl = do
         Just input  -> liftIO $ evalString input
 
 evalString :: String -> IO ()
-evalString s = print (runEval s)
+evalString s =
+  let evaled = runEval s
+  in putStrLn $ case evaled of
+    Success s' -> colorize (show s')
+    Failure d -> show d
+
+colorize :: String -> String
+colorize s =
+  HsColour.hscolour (HsColour.TTYg HsColour.XTerm256Compatible) HsColour.defaultColourPrefs False False "" False s
 
 runEval :: String -> Result (Maybe Produce)
 runEval s = eval mempty <$> parseString (runParser expression) mempty s

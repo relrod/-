@@ -59,7 +59,7 @@ ifExp = do
 expression :: DashParser Term
 expression = do
   spaces
-  choice [variable, lambda', literalInt, literalString, literalBool]
+  choice [variable, lambda', literalInt, literalString, literalBool, ifExp]
   where
     lambda' = do
       _ <- char '('

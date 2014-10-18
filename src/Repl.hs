@@ -30,6 +30,7 @@ repl :: IO ()
 repl = do
   hSetBuffering stdout NoBuffering
   putStrLn "λ Welcome to dash! λ"
+  putStrLn "Type 'quit' to exit."
   homeDir <- getHomeDirectory
   runInputT defaultSettings {
     historyFile = Just (homeDir </> ".dashrepl_history")
@@ -37,12 +38,12 @@ repl = do
   where
     loop :: InputT IO ()
     loop = forever $ do
-      minput <- getInputLine "dash> "
+      minput <- handleInterrupt (return Nothing) $ getInputLine "dash> "
       case minput of
         Nothing     -> return ()
         Just "quit" -> liftIO exitSuccess
         Just "exit" -> liftIO exitSuccess
-        Just input  -> liftIO $ evalString input
+        Just input  -> liftIO $ handleInterrupt (return ()) (evalString input)
 
 evalString :: String -> IO ()
 evalString s =

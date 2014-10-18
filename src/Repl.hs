@@ -6,7 +6,7 @@ import Control.Monad.IO.Class
 import Data.Maybe (listToMaybe)
 import Data.Monoid
 import Language.Dash.Parser
-import Language.Dash.Produce
+import Language.Dash.Environment
 import Language.Dash.Evaluate
 import qualified Language.Haskell.HsColour as HsColour
 import qualified Language.Haskell.HsColour.Colourise as HsColour
@@ -50,5 +50,5 @@ colorize :: String -> String
 colorize s =
   HsColour.hscolour (HsColour.TTYg HsColour.XTerm256Compatible) HsColour.defaultColourPrefs False False "" False s
 
-runEval :: String -> Result (Maybe Produce)
+runEval :: String -> Result (Maybe Literal)
 runEval s = eval mempty <$> parseString (runParser expression) mempty s

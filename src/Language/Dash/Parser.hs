@@ -12,7 +12,7 @@ module Language.Dash.Parser
        , runParser) where
 
 
-import Language.Dash.Term
+import Language.Dash.Environment (Term (..), Literal (..))
 
 import Control.Applicative
 import Control.Monad
@@ -56,6 +56,19 @@ ifExp = do
   false <- expression
   return $ If bool true false
 
+letBinding :: DashParser Term
+letBinding = do
+  _ <- string "let"
+  spaces
+  _ <- char '['
+  var <- some alphaNum -- TODO: Variable
+  _ <- char '='
+  binding <- expression
+  _ <- char ']'
+  spaces
+  body <- expression
+  return $ LetRec var binding body
+
 expression :: DashParser Term
 expression = do
   spaces
@@ -63,7 +76,7 @@ expression = do
   where
     lambda' = do
       _ <- char '('
-      x <- choice [lambda, ifExp]
+      x <- choice [lambda, ifExp, letBinding]
       _ <- char ')'
       return x
 

@@ -16,9 +16,7 @@ cabal-version:       >=1.10
 library
   exposed-modules:     Language.Dash.Environment
                        Language.Dash.Evaluate
-                       Language.Dash.Term
                        Language.Dash.Parser
-                       Language.Dash.Produce
   -- other-modules:
   other-extensions:    NoImplicitPrelude
   build-depends:       haskeline >= 0.7.1.2,

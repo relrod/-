@@ -35,6 +35,8 @@ executable dashrepl
                        transformers >= 0.3.0.0,
                        base >= 4 && < 5
                      , dash
+                     , directory >= 1.2 && < 2
+                     , filepath >= 1.2 && < 2
                      , haskeline >= 0.7 && < 1
                      , hscolour >= 1.2 && < 2
                      , parsers >= 0.10 && < 1

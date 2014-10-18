@@ -13,8 +13,10 @@ import qualified Language.Haskell.HsColour.Colourise as HsColour
 import qualified Language.Haskell.HsColour.Output as HsColour
 import Text.Trifecta
 import System.Console.Haskeline
+import System.Directory
 import System.Environment (getArgs)
 import System.Exit (exitSuccess)
+import System.FilePath ((</>))
 import System.IO
 
 main :: IO ()
@@ -28,7 +30,10 @@ repl :: IO ()
 repl = do
   hSetBuffering stdout NoBuffering
   putStrLn "λ Welcome to dash! λ"
-  runInputT defaultSettings loop
+  homeDir <- getHomeDirectory
+  runInputT defaultSettings {
+    historyFile = Just (homeDir </> ".dashrepl_history")
+  } $ withInterrupt loop
   where
     loop :: InputT IO ()
     loop = forever $ do

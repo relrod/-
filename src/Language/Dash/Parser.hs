@@ -56,9 +56,9 @@ ifExp = do
   false <- expression
   return $ If bool true false
 
-letBinding :: DashParser Term
-letBinding = do
-  _ <- string "let"
+letRecBinding :: DashParser Term
+letRecBinding = do
+  _ <- string "letrec"
   spaces
   _ <- char '['
   (Variable var) <- variable
@@ -76,7 +76,7 @@ expression = do
   where
     sExp = do
       _ <- char '('
-      x <- choice [lambda, ifExp, letBinding]
+      x <- choice [lambda, ifExp, letRecBinding]
       _ <- char ')'
       return x
 

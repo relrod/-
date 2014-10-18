@@ -4,7 +4,7 @@ module Language.Dash.Evaluate (eval) where
 
 import Language.Dash.Environment
 
-import Prelude (($), Maybe (..), maybe, error)
+import Prelude (($), Maybe (..), maybe)
 
 eval :: Environment -> Term -> Maybe Literal
 eval e (Variable s) = getEnv e s
@@ -18,6 +18,7 @@ eval e (If x y z) = do
   case eval e x of
     Just (LiteralBool res) -> eval e $ if res then y else z
     _ -> Nothing
-eval e (LetRec s t1 t2) = do
-  v1 <- eval e t1
-  error "hi"
+eval (Environment e) (LetRec s t1 t2) = eval e' t2
+  where
+    e' = Environment $ (s, v) : e
+    (Just v) = eval e' t1

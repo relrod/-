@@ -1,0 +1,6 @@
+(letrec [$x=true]
+  (letrec [$y=false]
+    (if $x
+        (letrec [$ohnoes="ohnoes"]
+          $ohnoes)
+        "oooooooooops")))

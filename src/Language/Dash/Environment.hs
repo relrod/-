@@ -8,8 +8,8 @@ module Language.Dash.Environment (
   ) where
 
 import Data.Monoid
-import Prelude (String,  (++), lookup, Maybe)
-import Prelude (Show (show))
+import Prelude (String, (++), (+), (-), lookup, Maybe (..))
+import Prelude (Show (show), Enum, toEnum, fromEnum, error)
 import Prelude (Bool, Int)
 
 data Environment = Environment [(String, Literal)] deriving (Show)
@@ -38,6 +38,14 @@ data Term
   | If Term Term Term
   | LetRec String Term Term  -- TODO: List
   deriving (Show)
+
+instance Enum Term where
+  toEnum 0 = Variable "x"
+  toEnum x = Lambda "x" (toEnum (x - 1))
+  fromEnum t = f t 0 where
+    f (Variable _) i  = i
+    f (Lambda _ t') i = f t' (i + 1)
+    f _            _  = error "Not a church-encodable term"
 
 getEnv :: Environment -> String -> Maybe Literal
 getEnv (Environment e) s = lookup s e

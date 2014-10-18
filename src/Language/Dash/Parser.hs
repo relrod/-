@@ -72,9 +72,9 @@ letBinding = do
 expression :: DashParser Term
 expression = do
   spaces
-  choice [variable, lambda', literalInt, literalString, literalBool, ifExp]
+  choice [variable, sExp, literalInt, literalString, literalBool, ifExp]
   where
-    lambda' = do
+    sExp = do
       _ <- char '('
       x <- choice [lambda, ifExp, letBinding]
       _ <- char ')'

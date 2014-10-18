@@ -61,7 +61,7 @@ letBinding = do
   _ <- string "let"
   spaces
   _ <- char '['
-  var <- some alphaNum -- TODO: Variable
+  (Variable var) <- variable
   _ <- char '='
   binding <- expression
   _ <- char ']'

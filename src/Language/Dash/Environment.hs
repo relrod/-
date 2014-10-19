@@ -7,6 +7,7 @@ module Language.Dash.Environment (
   getEnv
   ) where
 
+import Data.List.NonEmpty
 import Data.Monoid
 import Prelude
   ((++), (+), (-), Bool, Enum, Int, Maybe(..), Show(show), String, error,
@@ -36,7 +37,7 @@ data Term
   | Lambda String Term
   | Literal Literal
   | If Term Term Term
-  | LetRec [(String, Term)] Term
+  | LetRec (NonEmpty (String, Term)) Term
   deriving (Show)
 
 instance Enum Term where

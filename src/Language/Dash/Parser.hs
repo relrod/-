@@ -16,6 +16,7 @@ import Language.Dash.Environment (Term (..), Literal (..))
 
 import Control.Applicative
 import Control.Monad
+import Data.List.NonEmpty
 import Prelude (($), (.), (==), read, foldl1, Bool (..))
 import Text.Parser.Token.Style
 import Text.Trifecta as T
@@ -67,7 +68,7 @@ letRecBinding = do
   _ <- char ']'
   spaces
   body <- expression
-  return $ LetRec [(var, binding)] body
+  return $ LetRec (fromList [(var, binding)]) body
 
 expression :: DashParser Term
 expression = do

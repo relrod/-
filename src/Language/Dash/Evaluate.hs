@@ -4,7 +4,7 @@ module Language.Dash.Evaluate (eval) where
 
 import Language.Dash.Environment
 
-import Prelude (($), Maybe (..), maybe)
+import Prelude (($), Maybe (..), maybe, (>>=))
 
 eval :: Environment -> Term -> Maybe Literal
 eval e (Variable s) = getEnv e s
@@ -14,11 +14,14 @@ eval e (Apply t1 t2) =
   case eval e t1 of
     Just (LiteralFunction _ f) -> f $ eval e t2
     _ -> Nothing --error $ "Not a lambda: " ++ show v
-eval e (If x y z) = do
+eval e (If x y z) =
   case eval e x of
     Just (LiteralBool res) -> eval e $ if res then y else z
     _ -> Nothing
-eval (Environment e) (LetRec s t1 t2) = eval e' t2
+eval (Environment e) (LetRec s t1 t2) = e' >>= (`eval` t2)
   where
-    e' = Environment $ (s, v) : e
-    (Just v) = eval e' t1
+    e' :: Maybe Environment
+    e' = v >>= (\v' -> Just (Environment $ (s, v') : e))
+
+    v :: Maybe Literal
+    v = e' >>= (`eval` t1)

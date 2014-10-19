@@ -53,8 +53,13 @@ evalString s =
     Failure d -> show d
 
 colorize :: String -> String
-colorize s =
-  HsColour.hscolour (HsColour.TTYg HsColour.XTerm256Compatible) HsColour.defaultColourPrefs False False "" False s
+colorize =
+  HsColour.hscolour (HsColour.TTYg HsColour.XTerm256Compatible)
+    HsColour.defaultColourPrefs
+    False
+    False
+    ""
+    False
 
 runEval :: String -> Result (Maybe Literal)
 runEval s = eval mempty <$> parseString (runParser expression) mempty s

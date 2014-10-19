@@ -8,9 +8,9 @@ module Language.Dash.Environment (
   ) where
 
 import Data.Monoid
-import Prelude (String, (++), (+), (-), lookup, Maybe (..))
-import Prelude (Show (show), Enum, toEnum, fromEnum, error)
-import Prelude (Bool, Int)
+import Prelude
+  ((++), (+), (-), Bool, Enum, Int, Maybe(..), Show(show), String, error,
+   fromEnum, toEnum, lookup)
 
 data Environment = Environment [(String, Literal)] deriving (Show)
 

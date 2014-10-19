@@ -2,7 +2,7 @@ name:                dash
 version:             0.1.0.0
 synopsis:            A simply typed lambda calculus toy thing
 -- description:
-homepage:            https://github.com/CodeBlock/-
+homepage:            https://github.com/relrod/-
 license:             BSD3
 license-file:        LICENSE
 author:              Ricky Elrod

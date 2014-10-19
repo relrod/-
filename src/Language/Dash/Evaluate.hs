@@ -1,10 +1,11 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE RecursiveDo #-}
 
 module Language.Dash.Evaluate (eval) where
 
 import Language.Dash.Environment
 
-import Prelude (($), Maybe (..), maybe, (>>=))
+import Prelude (($), Maybe (..), maybe)
 
 eval :: Environment -> Term -> Maybe Literal
 eval e (Variable s) = getEnv e s
@@ -18,10 +19,6 @@ eval e (If x y z) =
   case eval e x of
     Just (LiteralBool res) -> eval e $ if res then y else z
     _ -> Nothing
-eval (Environment e) (LetRec s t1 t2) = e' >>= (`eval` t2)
-  where
-    e' :: Maybe Environment
-    e' = v >>= (\v' -> Just (Environment $ (s, v') : e))
-
-    v :: Maybe Literal
-    v = e' >>= (`eval` t1)
+eval (Environment e) (LetRec s t1 t2) = do
+  rec v <- eval (Environment $ (s, v) : e) t1
+  eval (Environment $ (s, v) : e) t2

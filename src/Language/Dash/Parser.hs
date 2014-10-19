@@ -67,7 +67,7 @@ letRecBinding = do
   _ <- char ']'
   spaces
   body <- expression
-  return $ LetRec var binding body
+  return $ LetRec [(var, binding)] body
 
 expression :: DashParser Term
 expression = do

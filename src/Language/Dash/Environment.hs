@@ -36,7 +36,7 @@ data Term
   | Lambda String Term
   | Literal Literal
   | If Term Term Term
-  | LetRec String Term Term  -- TODO: List
+  | LetRec [(String, Term)] Term
   deriving (Show)
 
 instance Enum Term where

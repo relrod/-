@@ -19,6 +19,6 @@ eval e (If x y z) =
   case eval e x of
     Just (LiteralBool res) -> eval e $ if res then y else z
     _ -> Nothing
-eval (Environment e) (LetRec s t1 t2) = do
+eval (Environment e) (LetRec [(s, t1)] t2) = do
   rec v <- eval (Environment $ (s, v) : e) t1
   eval (Environment $ (s, v) : e) t2

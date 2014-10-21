@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
@@ -11,8 +12,8 @@ module Language.Dash.Environment (
 import Data.List.NonEmpty
 import Data.Monoid
 import Prelude
-  ((++), (+), (-), Bool, Enum, Int, Maybe(..), Show(show),
-   String, error, fromEnum, toEnum, lookup)
+  ((++), (+), (-), (>>=), Bool, Enum, Functor, Int, Maybe(..), Monad,
+   Show(show), String, error, fromEnum, toEnum, lookup, return)
 
 data Environment = Environment [(String, Literal)] deriving (Show)
 
@@ -39,7 +40,7 @@ data Term a
   | Literal Literal
   | If (Term a) (Term a) (Term a)
   | LetRec (NonEmpty (a, (Term a))) (Term a)
-  deriving (Show)
+  deriving (Functor, Show)
 
 instance Enum (Term String) where
   toEnum 0 = Variable "x"

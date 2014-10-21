@@ -5,10 +5,10 @@ module Language.Dash.Evaluate (eval) where
 
 import Language.Dash.Environment
 
-import Prelude (($), Maybe (..), maybe)
+import Prelude (($), Maybe (..), String, maybe)
 import Data.List.NonEmpty
 
-eval :: Environment -> Term -> Maybe Literal
+eval :: Environment -> Term String -> Maybe Literal
 eval e (Variable s) = getEnv e s
 eval _ (Literal y) = Just y
 eval (Environment e) (Lambda n l) = Just (LiteralFunction (Environment e) (maybe Nothing (\x -> eval (Environment $ (n, x) : e) l)))

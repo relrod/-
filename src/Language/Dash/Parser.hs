@@ -17,7 +17,7 @@ import Language.Dash.Environment (Term (..), Literal (..))
 import Control.Applicative
 import Control.Monad
 import Data.List.NonEmpty
-import Prelude (($), (.), (==), read, foldl1, Bool (..))
+import Prelude (($), (.), (==), read, foldl1, Bool (..), String)
 import Text.Parser.Token.Style
 import Text.Trifecta as T
 
@@ -27,7 +27,7 @@ newtype DashParser a = DashParser { runParser :: T.Parser a }
 instance T.TokenParsing DashParser where
   someSpace = buildSomeSpaceParser (DashParser T.someSpace) commentStyle
 
-lambda :: DashParser Term
+lambda :: DashParser (Term String)
 lambda =
   let
     l = do
@@ -41,13 +41,13 @@ lambda =
       return $ foldl1 Apply applications
   in choice [l, app]
 
-variable :: DashParser Term
+variable :: DashParser (Term String)
 variable = do
   _ <- char '$'
   name <- some alphaNum
   return $ Variable name
 
-ifExp :: DashParser Term
+ifExp :: DashParser (Term String)
 ifExp = do
   _ <- string "if"
   bool <- expression
@@ -57,7 +57,7 @@ ifExp = do
   false <- expression
   return $ If bool true false
 
-letRecBinding :: DashParser Term
+letRecBinding :: DashParser (Term String)
 letRecBinding = do
   _ <- string "letrec"
   spaces
@@ -70,7 +70,7 @@ letRecBinding = do
   body <- expression
   return $ LetRec (fromList [(var, binding)]) body
 
-expression :: DashParser Term
+expression :: DashParser (Term String)
 expression = do
   spaces
   choice [variable, sExp, literalInt, literalString, literalBool, ifExp]
@@ -81,23 +81,23 @@ expression = do
       _ <- char ')'
       return x
 
-literalInt :: DashParser Term
+literalInt :: DashParser (Term String)
 literalInt =
   Literal . LiteralInt . read <$> some digit
 
-literalBool :: DashParser Term
+literalBool :: DashParser (Term String)
 literalBool = do
   bool <- choice [string "true", string "false"]
   if bool == "true"
     then return $ Literal (LiteralBool True)
     else return $ Literal (LiteralBool False)
 
-literalString :: DashParser Term
+literalString :: DashParser (Term String)
 literalString = do
   x <- between (char '"') (char '"') (some $ noneOf "\"")
   return $ Literal . LiteralString $ x
 
-expressions :: DashParser [Term]
+expressions :: DashParser [Term String]
 expressions = do
   x <- some expression
   eof

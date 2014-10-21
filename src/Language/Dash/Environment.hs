@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Language.Dash.Environment (
@@ -10,8 +11,8 @@ module Language.Dash.Environment (
 import Data.List.NonEmpty
 import Data.Monoid
 import Prelude
-  ((++), (+), (-), Bool, Enum, Int, Maybe(..), Show(show), String, error,
-   fromEnum, toEnum, lookup)
+  ((++), (+), (-), Bool, Enum, Int, Maybe(..), Show(show),
+   String, error, fromEnum, toEnum, lookup)
 
 data Environment = Environment [(String, Literal)] deriving (Show)
 
@@ -31,16 +32,16 @@ instance Show Literal where
   show (LiteralBool b)       = show b
   show (LiteralFunction _ _) = "<function>"
 
-data Term
-  = Variable String
-  | Apply Term Term
-  | Lambda String Term
+data Term a
+  = Variable a
+  | Apply (Term a) (Term a)
+  | Lambda a (Term a)
   | Literal Literal
-  | If Term Term Term
-  | LetRec (NonEmpty (String, Term)) Term
+  | If (Term a) (Term a) (Term a)
+  | LetRec (NonEmpty (a, (Term a))) (Term a)
   deriving (Show)
 
-instance Enum Term where
+instance Enum (Term String) where
   toEnum 0 = Variable "x"
   toEnum x = Lambda "x" (toEnum (x - 1))
   fromEnum t = f t 0 where

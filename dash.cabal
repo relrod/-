@@ -25,8 +25,9 @@ library
                      , filepath >= 1.2 && < 2
                      , haskeline >= 0.7 && < 1
                      , hscolour >= 1.2 && < 2
+                     , mtl >= 2 && < 3
                      , parsers >= 0.10 && < 1
-                     , transformers >= 0.3.0.0
+                     , transformers >= 0.3 && < 0.5
                      , trifecta >= 1.4 && < 2
                      , semigroups >= 0.8 && < 1
   hs-source-dirs:      src
@@ -36,15 +37,14 @@ library
 executable dashrepl
   main-is:             Repl.hs
   other-extensions:    NoImplicitPrelude
-  build-depends:       haskeline >= 0.7.1.2,
-                       transformers >= 0.3.0.0,
-                       base >= 4 && < 5
+  build-depends:       base >= 4 && < 5
                      , bifunctors >= 4 && < 5
                      , dash
                      , directory >= 1.2 && < 2
                      , filepath >= 1.2 && < 2
                      , haskeline >= 0.7 && < 1
                      , hscolour >= 1.2 && < 2
+                     , mtl >= 2 && < 3
                      , parsers >= 0.10 && < 1
                      , semigroups >= 0.8 && < 1
                      , transformers >= 0.3 && < 0.5

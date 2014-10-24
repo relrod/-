@@ -15,8 +15,8 @@ import Control.Monad
 import Data.List.NonEmpty
 import Data.Monoid
 import Prelude
-  ((.), (++), (+), (-), (>>=), ($), Bool, Enum, Functor, Int, Maybe(..), Monad,
-   Show(show), String, error, fmap, fromEnum, toEnum, lookup, return)
+  ((.), (++), (+), (-), (>>=), ($), Bool, Enum, Functor, Integer, Maybe(..),
+   Monad, Show(show), String, error, fmap, fromEnum, toEnum, lookup, return)
 
 data Environment = Environment [(String, Literal)] deriving (Show)
 
@@ -26,7 +26,7 @@ instance Monoid Environment where
 
 data Literal
   = LiteralString String
-  | LiteralInt Int
+  | LiteralInt Integer
   | LiteralBool Bool
   | LiteralFunction Environment (Maybe Literal -> Maybe Literal)
 

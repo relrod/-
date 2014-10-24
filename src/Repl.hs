@@ -61,7 +61,7 @@ evalString (stripPrefix ":let " -> Just newbinding) = do
   case evaled of
     Success s' -> case s' of
       Just y -> do
-        modify (\x -> (name, y) : x)
+        modify ((name, y) :)
         x <- get
         liftIO . print $ x
       Nothing -> return ()

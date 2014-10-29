@@ -1,23 +1,21 @@
 name:                dash
 version:             0.1.0.0
 synopsis:            A simply typed lambda calculus toy thing
--- description:
+description:         An experimental/toy programming language.
 homepage:            https://github.com/relrod/-
 license:             BSD3
 license-file:        LICENSE
 author:              Ricky Elrod
 maintainer:          ricky@elrod.me
--- copyright:
+copyright:           (C) 2014 Ricky Elrod
 category:            Language
 build-type:          Simple
--- extra-source-files:
 cabal-version:       >=1.10
 
 library
   exposed-modules:     Language.Dash.Environment
                        Language.Dash.Evaluate
                        Language.Dash.Parser
-  -- other-modules:
   other-extensions:    NoImplicitPrelude
   build-depends:       base >= 4 && < 5
                      , bifunctors >= 4 && < 5

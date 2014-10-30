@@ -62,17 +62,20 @@ letRecBinding = do
   _ <- string "letrec"
   spaces
   _ <- char '['
-  (Variable var) <- variable
-  _ <- char '='
-  binding <- expression
+  bindings <- binding `sepBy1` spaces
   _ <- char ']'
   spaces
   body <- expression
-  return $ LetRec (fromList [(var, binding)]) body
+  return $ LetRec (fromList bindings) body
+  where
+    binding = do
+      (Variable var) <- variable
+      _ <- char '='
+      expr <- expression
+      return (var, expr)
 
 expression :: DashParser (Term String)
 expression = do
-  spaces
   choice [variable, sExp, literalInt, literalString, literalBool, ifExp]
   where
     sExp = do

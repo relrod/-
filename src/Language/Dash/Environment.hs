@@ -64,3 +64,4 @@ instance Enum (Term String) where
 
 getEnv :: Environment -> String -> Maybe Literal
 getEnv (Environment e) s = lookup s e
+

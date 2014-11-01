@@ -12,7 +12,6 @@ module Language.Dash.Environment (
 --import Control.Applicative ((<$>))
 import Control.Monad
 --import Data.Bifunctor
-import Data.List.NonEmpty
 import Data.Monoid
 import Prelude
   ((.), (++), (+), (-), (>>=), ($), Bool, Enum, Functor, Integer, Maybe(..),
@@ -42,7 +41,7 @@ data Term a
   | Lambda a (Term a)
   | Literal Literal
   | If (Term a) (Term a) (Term a)
-  | LetRec (NonEmpty (a, Term a)) (Term a)
+  | LetRec a (Term a) (Term a)
   deriving (Functor, Show)
 
 instance Enum (Term String) where

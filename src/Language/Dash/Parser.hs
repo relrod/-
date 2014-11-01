@@ -16,8 +16,7 @@ import Language.Dash.Environment (Term (..), Literal (..))
 
 import Control.Applicative
 import Control.Monad
-import Data.List.NonEmpty
-import Prelude (($), (.), (==), read, foldl1, Bool (..), String)
+import Prelude (($), (.), (==), read, foldr, foldl1, Bool (..), String)
 import Text.Parser.Token.Style
 import Text.Trifecta as T
 
@@ -57,6 +56,8 @@ ifExp = do
   false <- expression
   return $ If bool true false
 
+-- Goal: Parse (letrec [$x=4 $y=$x] $y) into:
+--    LetRec x (LiteralInt 4) (LetRec y x y)
 letRecBinding :: DashParser (Term String)
 letRecBinding = do
   _ <- string "letrec"
@@ -66,16 +67,20 @@ letRecBinding = do
   _ <- char ']'
   spaces
   body <- expression
-  return $ LetRec (fromList bindings) body
+
+  -- At this point, "bindings" has is a list of functions each expecting an
+  -- expression. We need to fold them into one expression that takes one
+  -- argument ("body").
+  return $ foldr (\(var, expr) body' -> LetRec var expr body') body bindings
   where
-    binding = do
+    binding  = do
       (Variable var) <- variable
       _ <- char '='
       expr <- expression
       return (var, expr)
 
 expression :: DashParser (Term String)
-expression = do
+expression =
   choice [variable, sExp, literalInt, literalString, literalBool, ifExp]
   where
     sExp = do

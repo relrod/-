@@ -71,6 +71,7 @@ repl args = do
         Nothing     -> return ()
         Just "quit" -> liftIO exitSuccess
         Just "exit" -> liftIO exitSuccess
+        Just ":q"   -> liftIO exitSuccess
         Just input  -> evalString args input --liftIO $ handleInterrupt (return ()) (evalString input)
 
 evalString :: Arguments -> String -> StateT [(String, Literal)] (InputT IO) ()

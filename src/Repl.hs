@@ -91,6 +91,10 @@ evalString args (stripPrefix ":let " -> Just newbinding) = do
         liftIO . print $ x
       Nothing -> return ()
     Failure d -> liftIO . putStrLn $ show d
+evalString _ (stripPrefix ":parse " -> Just expr) = do
+  case parse expr of
+    Success s' -> liftIO . putStrLn . ppShow $ s'
+    Failure d -> liftIO . putStrLn $ show d
 evalString args s = liftIO . evalString' args s =<< get
 
 -- | Evaluate a String of dash code with some extra "stuff" in the environment.

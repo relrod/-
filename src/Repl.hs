@@ -6,8 +6,8 @@ import Control.Arrow hiding (loop)
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans
-import Control.Monad.Trans.State.Lazy
-import Data.List (stripPrefix)
+import Control.Monad.Trans.State.Strict
+import Data.List (isPrefixOf, stripPrefix)
 import Data.Monoid
 import Language.Dash.Parser
 import Language.Dash.Environment
@@ -54,19 +54,29 @@ triggerRepl args = do
     Just name -> readFile name >>= flip (evalString' args) []
     Nothing   -> repl args
 
+cSearch :: String -> StateT [(String, Literal)] IO [Completion]
+cSearch s = do
+  st <- get
+  return $ simpleCompletion <$> filter (isPrefixOf s) ((('$' :) . fst) <$> st)
+
+cComplete :: CompletionFunc (StateT [(String, Literal)] IO)
+cComplete = completeWord Nothing " \t" cSearch
+
 repl :: Arguments -> IO ()
 repl args = do
   hSetBuffering stdout NoBuffering
   putStrLn "λ Welcome to dash! λ"
   putStrLn "Type 'quit' to exit."
   homeDir <- getHomeDirectory
-  runInputT defaultSettings {
-    historyFile = Just (homeDir </> ".dashrepl_history")
-    } $ withInterrupt (evalStateT loop [])
+
+  evalStateT (runInputT (setComplete cComplete defaultSettings {
+      historyFile = Just (homeDir </> ".dashrepl_history")
+  }) (withInterrupt loop)) []
+
   where
-    loop :: StateT [(String, Literal)] (InputT IO) ()
+    loop :: InputT (StateT [(String, Literal)] IO) ()
     loop = forever $ do
-      minput <- lift $ handleInterrupt (return Nothing) $ getInputLine "dash> "
+      minput <- handleInterrupt (return Nothing) $ getInputLine "dash> "
       case minput of
         Nothing     -> return ()
         Just "quit" -> liftIO exitSuccess
@@ -74,21 +84,21 @@ repl args = do
         Just ":q"   -> liftIO exitSuccess
         Just input  -> evalString args input --liftIO $ handleInterrupt (return ()) (evalString input)
 
-evalString :: Arguments -> String -> StateT [(String, Literal)] (InputT IO) ()
+evalString :: Arguments -> String -> InputT (StateT [(String, Literal)] IO) ()
 evalString _ ":let" = do
-  st <- get
+  st <- lift get
   liftIO . putStrLn $ show st
 evalString args (stripPrefix ":let " -> Just newbinding) = do
   let (name, binding) = second (dropWhile (==' ')) $ break (==' ') newbinding
-  st <- get
+  st <- lift get
   let parsed = parse binding
       evaled = runEval parsed st
   when (showParse args) (liftIO . putStrLn . colorize . ppShow $ parsed)
   case evaled of
     Success s' -> case s' of
       Just y -> do
-        modify ((name, y) :)
-        x <- get
+        lift $ modify ((name, y) :)
+        x <- lift get
         liftIO . print $ x
       Nothing -> return ()
     Failure d -> liftIO . putStrLn $ show d
@@ -96,7 +106,7 @@ evalString _ (stripPrefix ":parse " -> Just expr) = do
   case parse expr of
     Success s' -> liftIO . putStrLn . colorize . ppShow $ s'
     Failure d -> liftIO . putStrLn $ show d
-evalString args s = liftIO . evalString' args s =<< get
+evalString args s = liftIO . evalString' args s =<< lift get
 
 -- | Evaluate a String of dash code with some extra "stuff" in the environment.
 evalString' :: Arguments -> String -> [(String, Literal)] -> IO ()

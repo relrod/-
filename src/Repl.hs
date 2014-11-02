@@ -83,7 +83,7 @@ evalString args (stripPrefix ":let " -> Just newbinding) = do
   st <- get
   let parsed = parse binding
       evaled = runEval parsed st
-  when (showParse args) (liftIO . putStrLn . ppShow $ parsed)
+  when (showParse args) (liftIO . putStrLn . colorize . ppShow $ parsed)
   case evaled of
     Success s' -> case s' of
       Just y -> do
@@ -94,7 +94,7 @@ evalString args (stripPrefix ":let " -> Just newbinding) = do
     Failure d -> liftIO . putStrLn $ show d
 evalString _ (stripPrefix ":parse " -> Just expr) = do
   case parse expr of
-    Success s' -> liftIO . putStrLn . ppShow $ s'
+    Success s' -> liftIO . putStrLn . colorize . ppShow $ s'
     Failure d -> liftIO . putStrLn $ show d
 evalString args s = liftIO . evalString' args s =<< get
 
@@ -103,7 +103,7 @@ evalString' :: Arguments -> String -> [(String, Literal)] -> IO ()
 evalString' args s st = do
   let parsed = parse s
       evaled = runEval parsed st
-  when (showParse args) (liftIO . putStrLn . ppShow $ parsed)
+  when (showParse args) (liftIO . putStrLn . colorize . ppShow $ parsed)
   liftIO $ putStrLn $ case evaled of
     Success s' -> colorize (show s')
     Failure d -> show d

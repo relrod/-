@@ -49,7 +49,7 @@ main = OA.execParser opts >>= triggerRepl
      <> OA.header "dashrepl - a REPL for -" )
 
 triggerRepl :: Arguments -> IO ()
-triggerRepl args = do
+triggerRepl args =
   case filename args of
     Just name -> readFile name >>= flip (evalString' args) []
     Nothing   -> repl args
@@ -102,7 +102,7 @@ evalString args (stripPrefix ":let " -> Just newbinding) = do
         liftIO . print $ x
       Nothing -> return ()
     Failure d -> liftIO . putStrLn $ show d
-evalString _ (stripPrefix ":parse " -> Just expr) = do
+evalString _ (stripPrefix ":parse " -> Just expr) =
   case parse expr of
     Success s' -> liftIO . putStrLn . colorize . ppShow $ s'
     Failure d -> liftIO . putStrLn $ show d
@@ -131,4 +131,4 @@ runEval :: Result (Term String) -> [(String, Literal)] -> Result (Maybe Literal)
 runEval p env = eval (Environment env) <$> p
 
 parse :: String -> Result (Term String)
-parse s = parseString (runParser expression) mempty s
+parse = parseString (runParser expression) mempty

@@ -80,7 +80,8 @@ letRecBinding = do
       return (var, expr)
 
 expression :: DashParser (Term String)
-expression =
+expression = do
+  spaces
   choice [variable, sExp, literalInt, literalString, literalBool, ifExp]
   where
     sExp = do

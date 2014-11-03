@@ -2,14 +2,21 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Language.Dash.Parser
-       ( lambda
-       , variable
+       ( -- * Essential parsers
+         variable
        , expression
-       , expressions
+
+         -- * Things with syntactic sugar
+       , lambda
        , letRecBinding
+
+         -- * Literals
        , literalBool
        , literalInt
        , literalString
+
+         -- * Machinery
+       , expressions
        , runParser) where
 
 

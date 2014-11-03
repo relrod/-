@@ -31,10 +31,11 @@ lambda =
   let
     l = do
       _ <- char 'λ'
-      var <- manyTill (notChar ' ') (try (char '.'))
+      vars <- (some alphaNum) `sepBy1` spaces
+      _ <- char '.'
       spaces
       body <- lambda
-      return $ Lambda var body
+      return $ foldr (\var body' -> Lambda var body') body vars
     app = do
       applications <- some expression
       return $ foldl1 Apply applications
@@ -56,8 +57,6 @@ ifExp = do
   false <- expression
   return $ If bool true false
 
--- Goal: Parse (letrec [$x=4 $y=$x] $y) into:
---    LetRec x (LiteralInt 4) (LetRec y x y)
 letRecBinding :: DashParser (Term String)
 letRecBinding = do
   _ <- string "letrec"

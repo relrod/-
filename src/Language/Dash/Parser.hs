@@ -31,11 +31,11 @@ lambda =
   let
     l = do
       _ <- char 'λ'
-      vars <- (some alphaNum) `sepBy1` spaces
+      vars <- some alphaNum `sepBy1` spaces
       _ <- char '.'
       spaces
       body <- lambda
-      return $ foldr (\var body' -> Lambda var body') body vars
+      return $ foldr Lambda body vars
     app = do
       applications <- some expression
       return $ foldl1 Apply applications

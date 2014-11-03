@@ -6,6 +6,7 @@ module Language.Dash.Parser
        , variable
        , expression
        , expressions
+       , letRecBinding
        , literalBool
        , literalInt
        , literalString

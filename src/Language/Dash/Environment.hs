@@ -17,7 +17,7 @@ import Prelude
   ((.), (++), (+), (-), (>>=), ($), Bool, Enum, Functor, Integer, Maybe(..),
    Monad, Show(show), String, error, fmap, fromEnum, toEnum, lookup, return)
 
-data Environment = Environment [(String, Literal)] deriving (Show)
+newtype Environment = Environment [(String, Literal)] deriving (Show)
 
 instance Monoid Environment where
   mempty = Environment []

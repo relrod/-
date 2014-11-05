@@ -14,8 +14,8 @@ import Control.Monad
 --import Data.Bifunctor
 import Data.Monoid
 import Prelude
-  ((.), (++), (+), (-), (>>=), ($), Bool, Enum, Functor, Integer, Maybe(..),
-   Monad, Show(show), String, error, fmap, fromEnum, toEnum, lookup, return)
+  ((++), (+), (-), Bool, Enum, Integer, Maybe(..),
+   Show(show), String, error, fromEnum, toEnum, lookup)
 
 newtype Environment = Environment [(String, Literal)] deriving (Show)
 

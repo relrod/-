@@ -160,4 +160,4 @@ expressions = do
   return x
 
 commentStyle :: CommentStyle
-commentStyle = CommentStyle "" "" "#" False
+commentStyle = CommentStyle "" "" ";" False

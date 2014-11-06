@@ -1,1 +1,1 @@
-((λx. (λy. $x) 1234) "hello const")  # This is a comment.
+((λx. (λy. $x) 1234) "hello const")  ; This is a comment.

@@ -2,12 +2,13 @@
 module Main where
 
 import Control.Applicative
-import Control.Arrow hiding (loop)
+import Control.Arrow hiding ((<+>), loop)
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans
 import Control.Monad.Trans.State.Strict
 import Data.List (isPrefixOf, stripPrefix)
+import Data.Maybe (isJust)
 import Data.Monoid
 import Language.Dash.Parser
 import Language.Dash.Environment
@@ -21,8 +22,9 @@ import System.Directory
 import System.Exit (exitSuccess)
 import System.FilePath ((</>))
 import System.IO
+import Text.PrettyPrint.ANSI.Leijen hiding ((<$>), (<>), (</>))
 import Text.Show.Pretty
-import Text.Trifecta
+import Text.Trifecta hiding (text)
 
 data Arguments = Arguments
   {
@@ -84,6 +86,10 @@ repl args = do
         Just ":q"   -> liftIO exitSuccess
         Just input  -> evalString args input --liftIO $ handleInterrupt (return ()) (evalString input)
 
+warn :: Doc -> IO ()
+warn s = putDoc $
+         (yellow $ text "Warning:") <+> s <> hardline
+
 evalString :: Arguments -> String -> InputT (StateT [(String, Literal)] IO) ()
 evalString _ ":let" = do
   st <- lift get
@@ -94,6 +100,8 @@ evalString _ ":reset" = do
 evalString args (stripPrefix ":let " -> Just newbinding) = do
   let (name, binding) = second (dropWhile (==' ')) $ break (==' ') newbinding
   st <- lift get
+  when (isJust . lookup name $ st) $
+    liftIO . warn $ text "Shadowing existing binding `" <> bold (text name) <> text "'."
   let parsed = parse binding
       evaled = runEval parsed st
   when (showParse args) (liftIO . putStrLn . colorize . ppShow $ parsed)

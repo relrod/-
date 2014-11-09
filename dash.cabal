@@ -35,7 +35,8 @@ library
 executable dashrepl
   main-is:             Repl.hs
   other-extensions:    NoImplicitPrelude
-  build-depends:       base >= 4 && < 5
+  build-depends:       ansi-wl-pprint >= 0.6 && < 0.7
+                     , base >= 4 && < 5
                      , bifunctors >= 4 && < 5
                      , dash
                      , directory >= 1.2 && < 2

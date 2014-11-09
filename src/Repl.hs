@@ -88,6 +88,9 @@ evalString :: Arguments -> String -> InputT (StateT [(String, Literal)] IO) ()
 evalString _ ":let" = do
   st <- lift get
   liftIO . putStrLn $ show st
+evalString _ ":reset" = do
+  lift $ put mempty
+  liftIO . putStrLn $ "Environment cleared."
 evalString args (stripPrefix ":let " -> Just newbinding) = do
   let (name, binding) = second (dropWhile (==' ')) $ break (==' ') newbinding
   st <- lift get

@@ -24,7 +24,7 @@ import System.FilePath ((</>))
 import System.IO
 import Text.PrettyPrint.ANSI.Leijen hiding ((<$>), (<>), (</>))
 import Text.Show.Pretty
-import Text.Trifecta hiding (text)
+import Text.Trifecta hiding (err, text)
 
 data Arguments = Arguments
   {
@@ -90,6 +90,10 @@ warn :: Doc -> IO ()
 warn s = putDoc $
          (yellow $ text "Warning:") <+> s <> hardline
 
+err :: Doc -> IO ()
+err s = putDoc $
+         (red $ text "Error:") <+> s <> hardline
+
 evalString :: Arguments -> String -> InputT (StateT [(String, Literal)] IO) ()
 evalString _ ":let" = do
   st <- lift get
@@ -111,7 +115,7 @@ evalString args (stripPrefix ":let " -> Just newbinding) = do
         lift $ modify ((name, y) :)
         x <- lift get
         liftIO . print $ x
-      Nothing -> return ()
+      Nothing -> liftIO . err $ text "Could not produce a valid result."
     Failure d -> liftIO . putStrLn $ show d
 evalString _ (stripPrefix ":parse " -> Just expr) =
   case parse expr of
@@ -125,9 +129,11 @@ evalString' args s st = do
   let parsed = parse s
       evaled = runEval parsed st
   when (showParse args) (liftIO . putStrLn . colorize . ppShow $ parsed)
-  liftIO $ putStrLn $ case evaled of
-    Success s' -> colorize (show s')
-    Failure d -> show d
+  case evaled of
+   Success s' -> case s' of
+     Just y -> liftIO . putStrLn . colorize $ show y
+     Nothing -> liftIO . err $ text "Could not produce a valid result."
+   Failure d -> liftIO . putStrLn . show $ d
 
 colorize :: String -> String
 colorize =

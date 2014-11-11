@@ -118,9 +118,9 @@ evalString args (stripPrefix ":let " -> Just newbinding) = do
       Nothing -> liftIO . err $ text "Could not produce a valid result."
     Failure d -> liftIO . putStrLn $ show d
 evalString _ (stripPrefix ":parse " -> Just expr) =
-  case parse expr of
-    Success s' -> liftIO . putStrLn . colorize . ppShow $ s'
-    Failure d -> liftIO . putStrLn $ show d
+  liftIO $ case parse expr of
+    Success s' -> putStrLn . colorize . ppShow $ s'
+    Failure d -> putStrLn $ show d
 evalString args s = liftIO . evalString' args s =<< lift get
 
 -- | Evaluate a String of dash code with some extra "stuff" in the environment.
@@ -129,11 +129,11 @@ evalString' args s st = do
   let parsed = parse s
       evaled = runEval parsed st
   when (showParse args) (liftIO . putStrLn . colorize . ppShow $ parsed)
-  case evaled of
+  liftIO $ case evaled of
    Success s' -> case s' of
-     Just y -> liftIO . putStrLn . colorize $ show y
-     Nothing -> liftIO . err $ text "Could not produce a valid result."
-   Failure d -> liftIO . putStrLn . show $ d
+     Just y -> putStrLn . colorize $ show y
+     Nothing -> err $ text "Could not produce a valid result."
+   Failure d -> putStrLn . show $ d
 
 colorize :: String -> String
 colorize =

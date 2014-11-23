@@ -4,11 +4,12 @@ cwd="$( cd "${BASH_SOURCE[0]%/*}" && pwd )"
 cd "$cwd/.."
 f=`mktemp -d`
 git clone git@github.com:relrod/-.git "$f/-.git"
-standalone-haddock --package-db .cabal-sandbox/*packages.conf.d/ -o "$f" .
+cabal haddock
 pushd "$f/-.git"
   git checkout gh-pages && git rm -rf *
-  mv ../dash/* .
-  mv ../dash/.* .
+popd
+mv dist/doc/html/-/* "$f/-.git/"
+pushd "$f/-.git"
   git add -A
   git commit -m "Manual docs deploy."
   git push origin gh-pages

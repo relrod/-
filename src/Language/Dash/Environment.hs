@@ -1,39 +1,43 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Language.Dash.Environment (
   Environment (..),
   Literal (..),
   Term (..),
-  getEnv
+  getEnv, env
   ) where
 
 --import Control.Applicative ((<$>))
+import Control.Lens
 import Control.Monad
+import Control.Monad.State.Lazy (State)
 --import Data.Bifunctor
 import Data.Monoid
 import Prelude
   ((++), (+), (-), Bool, Enum, Integer, Maybe(..),
    Show(show), String, error, fromEnum, toEnum, lookup)
 
-newtype Environment = Environment [(String, Literal)] deriving (Show)
-
-instance Monoid Environment where
-  mempty = Environment []
-  mappend (Environment x) (Environment y) = Environment (x ++ y)
-
 data Literal
   = LiteralString String
   | LiteralInt Integer
   | LiteralBool Bool
-  | LiteralFunction Environment (Maybe Literal -> Maybe Literal)
+  | LiteralFunction Environment (Maybe Literal -> State Environment (Maybe Literal))
 
 instance Show Literal where
   show (LiteralString s)     = show s
   show (LiteralInt i)        = show i
   show (LiteralBool b)       = show b
   show (LiteralFunction _ _) = "<function>"
+
+newtype Environment = Environment { _env :: [(String, Literal)] } deriving (Show)
+makeLenses ''Environment
+
+instance Monoid Environment where
+  mempty = Environment []
+  mappend (Environment x) (Environment y) = Environment (x ++ y)
 
 data Term a
   = Variable a

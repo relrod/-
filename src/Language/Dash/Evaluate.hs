@@ -1,24 +1,48 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RecursiveDo #-}
 
-module Language.Dash.Evaluate (eval) where
+module Language.Dash.Evaluate (evalState) where
 
 import Language.Dash.Environment
 
-import Prelude (($), Maybe (..), String, maybe)
+import Control.Lens
+import Control.Monad.State.Lazy (State)
+import Data.List (lookup)
+import Prelude (($), Maybe (..), String, return)
 
-eval :: Environment -> Term String -> Maybe Literal
-eval e (Variable s) = getEnv e s
-eval _ (Literal y) = Just y
-eval (Environment e) (Lambda n l) = Just (LiteralFunction (Environment e) (maybe Nothing (\x -> eval (Environment $ (n, x) : e) l)))
-eval e (Apply t1 t2) =
-  case eval e t1 of
-    Just (LiteralFunction _ f) -> f $ eval e t2
-    _ -> Nothing --error $ "Not a lambda: " ++ show v
-eval e (If x y z) =
-  case eval e x of
-    Just (LiteralBool res) -> eval e $ if res then y else z
-    _ -> Nothing
-eval (Environment e) (LetRec s t1 t2) = do
-  rec v <- eval (Environment $ (s, v) : e) t1
-  eval (Environment $ (s, v) : e) t2
+evalState :: Term String -> State Environment (Maybe Literal)
+evalState (Variable s) = do
+  environment <- use env
+  return $ lookup s environment
+evalState (Literal y) = return $ Just y
+evalState (Lambda n l) = do
+  fn <- return $ \case
+    Nothing -> return Nothing
+    Just x  -> do
+      environment <- use env
+      env .= (n, x) : environment
+      evalState l
+  e <- use env
+  return $ Just (LiteralFunction (Environment e) fn)
+evalState (Apply t1 t2) = do
+  t1Res <- evalState t1
+  case t1Res of
+    Just (LiteralFunction _ f) -> do
+      t2Res <- evalState t2
+      f t2Res
+    _ -> return Nothing
+evalState (If x y z) = do
+  xRes <- evalState x
+  case xRes of
+    Just (LiteralBool res) -> do
+      evalState $ if res then y else z
+    _ -> return Nothing
+evalState (LetRec s t1 t2) = do
+  rec v <- evalState t1
+  case v of
+    Nothing -> return Nothing
+    Just res -> do
+      e <- use env
+      env .= (s, res) : e
+      evalState t2

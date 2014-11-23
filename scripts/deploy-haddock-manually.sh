@@ -8,7 +8,7 @@ cabal haddock
 pushd "$f/-.git"
   git checkout gh-pages && git rm -rf *
 popd
-mv dist/doc/html/-/* "$f/-.git/"
+mv dist/doc/html/dash/* "$f/-.git/"
 pushd "$f/-.git"
   git add -A
   git commit -m "Manual docs deploy."

@@ -3,6 +3,7 @@ module Main where
 
 import Control.Applicative
 import Control.Arrow hiding ((<+>), loop)
+import Control.Lens
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans
@@ -53,15 +54,15 @@ main = OA.execParser opts >>= triggerRepl
 triggerRepl :: Arguments -> IO ()
 triggerRepl args =
   case filename args of
-    Just name -> readFile name >>= flip (evalString' args) []
+    Just name -> readFile name >>= flip (evalString' args) mempty
     Nothing   -> repl args
 
-cSearch :: String -> StateT [(String, Literal)] IO [Completion]
+cSearch :: String -> StateT Environment IO [Completion]
 cSearch s = do
-  st <- get
+  st <- use env
   return $ simpleCompletion <$> filter (isPrefixOf s) ((('$' :) . fst) <$> st)
 
-cComplete :: CompletionFunc (StateT [(String, Literal)] IO)
+cComplete :: CompletionFunc (StateT Environment IO)
 cComplete = completeWord Nothing " \t" cSearch
 
 repl :: Arguments -> IO ()
@@ -73,10 +74,10 @@ repl args = do
 
   evalStateT (runInputT (setComplete cComplete defaultSettings {
       historyFile = Just (homeDir </> ".dashrepl_history")
-  }) (withInterrupt loop)) []
+  }) (withInterrupt loop)) mempty
 
   where
-    loop :: InputT (StateT [(String, Literal)] IO) ()
+    loop :: InputT (StateT Environment IO) ()
     loop = forever $ do
       minput <- handleInterrupt (return Nothing) $ getInputLine "dash> "
       case minput of
@@ -94,40 +95,41 @@ err :: Doc -> IO ()
 err s = putDoc $
          (red $ text "Error:") <+> s <> hardline
 
-evalString :: Arguments -> String -> InputT (StateT [(String, Literal)] IO) ()
+evalString :: Arguments -> String -> InputT (StateT Environment IO) ()
 evalString _ ":let" = do
-  st <- lift get
-  liftIO . putStrLn $ show st
+  environment <- lift $ use env
+  liftIO . putStrLn $ show environment
 evalString _ ":reset" = do
   lift $ put mempty
   liftIO . putStrLn $ "Environment cleared."
 evalString args (stripPrefix ":let " -> Just newbinding) = do
   let (name, binding) = second (dropWhile (==' ')) $ break (==' ') newbinding
-  st <- lift get
+  st <- lift $ use env
   when (isJust . lookup name $ st) $
     liftIO . warn $ text "Shadowing existing binding `" <> bold (text name) <> text "'."
   let parsed = parse binding
-      evaled = runEval parsed st
+  evaled <- lift $ hoistState $ runEval parsed
   when (showParse args) (liftIO . putStrLn . colorize . ppShow $ parsed)
   case evaled of
     Success s' -> case s' of
       Just y -> do
-        lift $ modify ((name, y) :)
-        x <- lift get
-        liftIO . print $ x
+        environment <- lift $ use env
+        lift $ env .=  (name, y) : environment  -- TODO: %= or something?
+        environment' <- lift $ use env
+        liftIO . print $ environment'
       Nothing -> liftIO . err $ text "Could not produce a valid result."
     Failure d -> liftIO . putStrLn $ show d
 evalString _ (stripPrefix ":parse " -> Just expr) =
   liftIO $ case parse expr of
     Success s' -> putStrLn . colorize . ppShow $ s'
     Failure d -> putStrLn $ show d
-evalString args s = liftIO . evalString' args s =<< lift get
+evalString args s = liftIO . evalString' args s =<< Environment <$> (lift $ use env)
 
 -- | Evaluate a String of dash code with some extra "stuff" in the environment.
-evalString' :: Arguments -> String -> [(String, Literal)] -> IO ()
+evalString' :: Arguments -> String -> Environment -> IO ()
 evalString' args s st = do
   let parsed = parse s
-      evaled = runEval parsed st
+      evaled = flip evalState st $ runEval parsed
   when (showParse args) (liftIO . putStrLn . colorize . ppShow $ parsed)
   liftIO $ case evaled of
    Success s' -> case s' of
@@ -144,8 +146,14 @@ colorize =
     ""
     False
 
-runEval :: Result (Term String) -> [(String, Literal)] -> Result (Maybe Literal)
-runEval p env = eval (Environment env) <$> p
+runEval :: Result (Term String) -> State Environment (Result (Maybe Literal))
+runEval (Success p) = do
+  res <- evalStateful p
+  return $ Success res
+runEval (Failure x) = return $ Failure x
 
 parse :: String -> Result (Term String)
 parse = parseString (runParser expression) mempty
+
+hoistState :: Monad m => State s a -> StateT s m a
+hoistState = StateT . (return .) . runState

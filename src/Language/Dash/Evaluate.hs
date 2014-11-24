@@ -2,47 +2,47 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RecursiveDo #-}
 
-module Language.Dash.Evaluate (evalState) where
+module Language.Dash.Evaluate (evalStateful) where
 
 import Language.Dash.Environment
 
 import Control.Lens
-import Control.Monad.State.Lazy (State)
+import Control.Monad.State.Strict (State)
 import Data.List (lookup)
 import Prelude (($), Maybe (..), String, return)
 
-evalState :: Term String -> State Environment (Maybe Literal)
-evalState (Variable s) = do
+evalStateful :: Term String -> State Environment (Maybe Literal)
+evalStateful (Variable s) = do
   environment <- use env
   return $ lookup s environment
-evalState (Literal y) = return $ Just y
-evalState (Lambda n l) = do
+evalStateful (Literal y) = return $ Just y
+evalStateful (Lambda n l) = do
   fn <- return $ \case
     Nothing -> return Nothing
     Just x  -> do
       environment <- use env
       env .= (n, x) : environment
-      evalState l
+      evalStateful l
   e <- use env
   return $ Just (LiteralFunction (Environment e) fn)
-evalState (Apply t1 t2) = do
-  t1Res <- evalState t1
+evalStateful (Apply t1 t2) = do
+  t1Res <- evalStateful t1
   case t1Res of
     Just (LiteralFunction _ f) -> do
-      t2Res <- evalState t2
+      t2Res <- evalStateful t2
       f t2Res
     _ -> return Nothing
-evalState (If x y z) = do
-  xRes <- evalState x
+evalStateful (If x y z) = do
+  xRes <- evalStateful x
   case xRes of
     Just (LiteralBool res) -> do
-      evalState $ if res then y else z
+      evalStateful $ if res then y else z
     _ -> return Nothing
-evalState (LetRec s t1 t2) = do
-  rec v <- evalState t1
+evalStateful (LetRec s t1 t2) = do
+  rec v <- evalStateful t1
   case v of
     Nothing -> return Nothing
     Just res -> do
       e <- use env
       env .= (s, res) : e
-      evalState t2
+      evalStateful t2

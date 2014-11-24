@@ -13,7 +13,7 @@ module Language.Dash.Environment (
 --import Control.Applicative ((<$>))
 import Control.Lens
 import Control.Monad
-import Control.Monad.State.Lazy (State)
+import Control.Monad.State.Strict (State)
 --import Data.Bifunctor
 import Data.Monoid
 import Prelude

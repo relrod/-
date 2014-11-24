@@ -17,12 +17,12 @@ evalStateful (Variable s) = do
   return $ lookup s environment
 evalStateful (Literal y) = return $ Just y
 evalStateful (Lambda n l) = do
-  fn <- return $ \case
-    Nothing -> return Nothing
-    Just x  -> do
-      environment <- use env
-      env .= (n, x) : environment
-      evalStateful l
+  let fn = \case
+        Nothing -> return Nothing
+        Just x  -> do
+          environment <- use env
+          env .= (n, x) : environment
+          evalStateful l
   e <- use env
   return $ Just (LiteralFunction (Environment e) fn)
 evalStateful (Apply t1 t2) = do
@@ -35,7 +35,7 @@ evalStateful (Apply t1 t2) = do
 evalStateful (If x y z) = do
   xRes <- evalStateful x
   case xRes of
-    Just (LiteralBool res) -> do
+    Just (LiteralBool res) ->
       evalStateful $ if res then y else z
     _ -> return Nothing
 evalStateful (LetRec s t1 t2) = do

@@ -88,12 +88,10 @@ repl args = do
         Just input  -> evalString args input --liftIO $ handleInterrupt (return ()) (evalString input)
 
 warn :: Doc -> IO ()
-warn s = putDoc $
-         (yellow $ text "Warning:") <+> s <> hardline
+warn s =  putDoc $ yellow (text "Warning:") <+> s <> hardline
 
 err :: Doc -> IO ()
-err s = putDoc $
-         (red $ text "Error:") <+> s <> hardline
+err s = putDoc $ red (text "Error:") <+> s <> hardline
 
 evalString :: Arguments -> String -> InputT (StateT Environment IO) ()
 evalString _ ":let" = do
@@ -122,8 +120,8 @@ evalString args (stripPrefix ":let " -> Just newbinding) = do
 evalString _ (stripPrefix ":parse " -> Just expr) =
   liftIO $ case parse expr of
     Success s' -> putStrLn . colorize . ppShow $ s'
-    Failure d -> putStrLn $ show d
-evalString args s = liftIO . evalString' args s =<< Environment <$> (lift $ use env)
+    Failure d -> print d
+evalString args s = liftIO . evalString' args s =<< Environment <$> lift (use env)
 
 -- | Evaluate a String of dash code with some extra "stuff" in the environment.
 evalString' :: Arguments -> String -> Environment -> IO ()
@@ -135,7 +133,7 @@ evalString' args s st = do
    Success s' -> case s' of
      Just y -> putStrLn . colorize $ show y
      Nothing -> err $ text "Could not produce a valid result."
-   Failure d -> putStrLn . show $ d
+   Failure d -> print d
 
 colorize :: String -> String
 colorize =

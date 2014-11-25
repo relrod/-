@@ -72,9 +72,10 @@ repl args = do
   putStrLn "Type 'quit' to exit."
   homeDir <- getHomeDirectory
 
-  evalStateT (runInputT (setComplete cComplete defaultSettings {
+  evalStateT (runInputT (setComplete cComplete defaultSettings
+    {
       historyFile = Just (homeDir </> ".dashrepl_history")
-  }) (withInterrupt loop)) mempty
+    }) (withInterrupt loop)) mempty
 
   where
     loop :: InputT (StateT Environment IO) ()
@@ -85,6 +86,7 @@ repl args = do
         Just "quit" -> liftIO exitSuccess
         Just "exit" -> liftIO exitSuccess
         Just ":q"   -> liftIO exitSuccess
+        Just ""     -> return ()
         Just input  -> evalString args input --liftIO $ handleInterrupt (return ()) (evalString input)
 
 warn :: Doc -> IO ()

@@ -42,7 +42,6 @@ parseArgs = Arguments
       ( OA.help "Evaluate the file at this path"
      <> OA.metavar "FILENAME") )
 
-
 main :: IO ()
 main = OA.execParser opts >>= triggerRepl
   where

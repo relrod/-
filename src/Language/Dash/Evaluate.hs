@@ -38,7 +38,7 @@ evalStateful (If x y z) = do
     Just (LiteralBool res) ->
       evalStateful $ if res then y else z
     _ -> return Nothing
-evalStateful (LetRec s t1 t2) = do
+evalStateful (LetRec s t1 (Just t2)) = do
   rec v <- evalStateful t1
   case v of
     Nothing -> return Nothing
@@ -46,3 +46,11 @@ evalStateful (LetRec s t1 t2) = do
       e <- use env
       env .= (s, res) : e
       evalStateful t2
+evalStateful (LetRec s t1 Nothing) = do
+  v <- evalStateful t1
+  case v of
+    Nothing -> return Nothing
+    Just res -> do
+      e <- use env
+      env .= (s, res) : e
+      return Nothing  -- TODO: Better error handling

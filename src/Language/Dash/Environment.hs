@@ -45,7 +45,7 @@ data Term a
   | Lambda a (Term a)
   | Literal Literal
   | If (Term a) (Term a) (Term a)
-  | LetRec a (Term a) (Term a)
+  | LetRec a (Term a) (Maybe (Term a))
   deriving (Functor, Show)
 
 instance Enum (Term String) where

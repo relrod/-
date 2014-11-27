@@ -9,6 +9,7 @@ module Language.Dash.Parser
          -- * Things with syntactic sugar
        , lambda
        , letRecBinding
+       , toplevelBinding
 
          -- * Literals
        , literalBool
@@ -24,6 +25,7 @@ import Language.Dash.Environment (Term (..), Literal (..))
 
 import Control.Applicative
 import Control.Monad
+import Data.Maybe
 import Prelude (($), (.), (==), read, foldr, foldl1, Bool (..), String)
 import Text.Parser.Token.Style
 import Text.Trifecta as T
@@ -110,13 +112,29 @@ letRecBinding = do
   -- At this point, "bindings" has is a list of functions each expecting an
   -- expression. We need to fold them into one expression that takes one
   -- argument ("body").
-  return $ foldr (\(var, expr) body' -> LetRec var expr body') body bindings
+  return $ foldr (\(var, expr) body' -> LetRec var expr (Just body')) body bindings
   where
     binding  = do
       (Variable var) <- variable
       _ <- char '='
       expr <- expression
       return (var, expr)
+
+-- | Parses a top-level binding expression. This is given by the keyword
+-- @define@ followed by a 'Variable', followed by the body of the expression.
+--
+-- This can be thought of as a global (and is parsed into) a 'letRec' binding
+-- that persists.
+--
+-- >>> (define $foo "bar")
+toplevelBinding :: DashParser (Term String)
+toplevelBinding = do
+  _ <- string "define"
+  spaces
+  (Variable var) <- variable
+  spaces
+  body <- expression
+  return $ LetRec var body Nothing
 
 -- | An expression is where the magic happens. It is a formulation of all of
 -- the other parsers we define. It is comprised of literals (such as
@@ -125,11 +143,17 @@ letRecBinding = do
 expression :: DashParser (Term String)
 expression = do
   spaces
-  choice [variable, sExp, literalInt, literalString, literalBool, ifExp]
+  choice [ variable
+         , sExp
+         , literalInt
+         , literalString
+         , literalBool
+         , ifExp
+         ]
   where
     sExp = do
       _ <- char '('
-      x <- choice [lambda, ifExp, letRecBinding]
+      x <- choice [lambda, ifExp, letRecBinding, toplevelBinding]
       _ <- char ')'
       return x
 

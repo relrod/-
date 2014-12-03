@@ -122,9 +122,6 @@ evalString _ (stripPrefix ":parse " -> Just expr) =
   liftIO $ case parse expr of
     Success s' -> putStrLn . colorize . ppShow $ s'
     Failure d -> print d
-evalString args (stripPrefix ":loadfile " -> Just file) = do
-  fLines <- liftIO $ lines <$> readFile file
-  mapM_ (evalString args) fLines
 evalString args s = liftIO . evalString' args s =<< Environment <$> lift (use env)
 
 -- | Evaluate a String of dash code with some extra "stuff" in the environment.

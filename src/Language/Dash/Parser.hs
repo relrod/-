@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
@@ -31,10 +32,12 @@ import Text.Parser.Token.Style
 import Text.Trifecta as T
 
 newtype DashParser a = DashParser { runParser :: T.Parser a }
-  deriving (Functor,Applicative,Alternative,Monad,T.Parsing,T.CharParsing)
+  deriving (Functor, Applicative, Alternative, Monad, T.Parsing, T.CharParsing)
 
 instance T.TokenParsing DashParser where
   someSpace = buildSomeSpaceParser (DashParser T.someSpace) commentStyle
+
+type ParseConstraint m = (Monad m, T.TokenParsing m)
 
 -- | Parses a lambda expression. A lambda expression is given by the unicode
 -- character @λ@ followed immediately by a variable name or names, then a @.@
@@ -48,7 +51,7 @@ instance T.TokenParsing DashParser where
 -- ...is parsed the same as...
 --
 -- >>> (λx. (λy. (λz. foo)))
-lambda :: DashParser (Term String)
+lambda :: ParseConstraint m => m (Term String)
 lambda =
   let
     l = do
@@ -66,7 +69,7 @@ lambda =
 -- | Parses a variable. A variable in dash is given by @$@ followed by an
 -- alphanumeric identifier, because we like stealing crappy ideas from PHP,
 -- apparently.
-variable :: DashParser (Term String)
+variable :: ParseConstraint m => m (Term String)
 variable = do
   _ <- char '$'
   name <- some alphaNum
@@ -74,7 +77,7 @@ variable = do
 
 -- | Parses an if-then-else expression, which is given by the keyword
 -- @if@, then the true branch, then the false branch, separated by spaces.
-ifExp :: DashParser (Term String)
+ifExp :: ParseConstraint m => m (Term String)
 ifExp = do
   _ <- string "if"
   bool <- expression
@@ -99,7 +102,7 @@ ifExp = do
 -- ...is parsed the same as...
 --
 -- >>> (letrec [$foo=1] (letrec [$bar=2] (letrec [$baz=$foo] $baz)))
-letRecBinding :: DashParser (Term String)
+letRecBinding :: ParseConstraint m => m (Term String)
 letRecBinding = do
   _ <- string "letrec"
   spaces
@@ -127,7 +130,7 @@ letRecBinding = do
 -- that persists.
 --
 -- >>> (define $foo "bar")
-toplevelBinding :: DashParser (Term String)
+toplevelBinding :: ParseConstraint m => m (Term String)
 toplevelBinding = do
   _ <- string "define"
   spaces
@@ -140,7 +143,7 @@ toplevelBinding = do
 -- the other parsers we define. It is comprised of literals (such as
 -- 'literalInt' and 'literalString') and s-expressions (@(@...@)@ lambdas,
 -- if-then-else expressions, letrec bindings, etc.)
-expression :: DashParser (Term String)
+expression :: ParseConstraint m => m (Term String)
 expression = do
   spaces
   choice [ variable
@@ -158,12 +161,12 @@ expression = do
       return x
 
 -- | Parses a literal 'Integer'.
-literalInt :: DashParser (Term String)
+literalInt :: ParseConstraint m => m (Term String)
 literalInt =
   Literal . LiteralInt . read <$> some digit
 
 -- | Parses a literal 'Bool', given by the keywords @true@ or @false@.
-literalBool :: DashParser (Term String)
+literalBool :: ParseConstraint m => m (Term String)
 literalBool = do
   bool <- choice [string "true", string "false"]
   if bool == "true"
@@ -171,13 +174,13 @@ literalBool = do
     else return $ Literal (LiteralBool False)
 
 -- | Parses a literal 'String', which is enclosed in double quotes.
-literalString :: DashParser (Term String)
+literalString :: ParseConstraint m => m (Term String)
 literalString = do
   x <- between (char '"') (char '"') (some $ noneOf "\"")
   return $ Literal . LiteralString $ x
 
 -- | Generates a list of expressions up to 'eof' and returns them.
-expressions :: DashParser [Term String]
+expressions :: ParseConstraint m => m [Term String]
 expressions = do
   x <- some expression
   eof

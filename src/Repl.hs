@@ -106,7 +106,7 @@ evalString args (stripPrefix ":let " -> Just newbinding) = do
   st <- lift $ use env
   when (isJust . lookup name $ st) $
     liftIO . warn $ text "Shadowing existing binding `" <> bold (text name) <> text "'."
-  let parsed = parse binding
+  let parsed = parseFromString binding
   evaled <- lift $ hoistState $ runEval parsed
   when (showParse args) (liftIO . putStrLn . colorize . ppShow $ parsed)
   case evaled of
@@ -119,7 +119,7 @@ evalString args (stripPrefix ":let " -> Just newbinding) = do
       Nothing -> liftIO . err $ text "Could not produce a valid result."
     Failure d -> liftIO . putStrLn $ show d
 evalString _ (stripPrefix ":parse " -> Just expr) =
-  liftIO $ case parse expr of
+  liftIO $ case parseFromString expr of
     Success s' -> putStrLn . colorize . ppShow $ s'
     Failure d -> print d
 evalString args s = liftIO . evalString' args s =<< Environment <$> lift (use env)
@@ -127,7 +127,7 @@ evalString args s = liftIO . evalString' args s =<< Environment <$> lift (use en
 -- | Evaluate a String of dash code with some extra "stuff" in the environment.
 evalString' :: Arguments -> String -> Environment -> IO ()
 evalString' args s st = do
-  let parsed = parse s
+  let parsed = parseFromString s
       evaled = flip evalState st $ runEval parsed
   when (showParse args) (liftIO . putStrLn . colorize . ppShow $ parsed)
   liftIO $ case evaled of
@@ -150,9 +150,6 @@ runEval (Success p) = do
   res <- evalStateful p
   return $ Success res
 runEval (Failure x) = return $ Failure x
-
-parse :: String -> Result (Term String)
-parse = parseString (runParser expression) mempty
 
 hoistState :: Monad m => State s a -> StateT s m a
 hoistState = StateT . (return .) . runState

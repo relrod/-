@@ -19,7 +19,10 @@ module Language.Dash.Parser
 
          -- * Machinery
        , expressions
-       , runParser) where
+       , runParser
+
+         -- * Making use of it all
+       , parseFromString) where
 
 
 import Language.Dash.Environment (Term (..), Literal (..))
@@ -27,6 +30,7 @@ import Language.Dash.Environment (Term (..), Literal (..))
 import Control.Applicative
 import Control.Monad
 import Data.Maybe
+import Data.Monoid (mempty)
 import Prelude (($), (.), (==), read, foldr, foldl1, Bool (..), String)
 import Text.Parser.Token.Style
 import Text.Trifecta as T
@@ -35,7 +39,7 @@ newtype DashParser a = DashParser { runParser :: T.Parser a }
   deriving (Functor, Applicative, Alternative, Monad, T.Parsing, T.CharParsing)
 
 instance T.TokenParsing DashParser where
-  someSpace = buildSomeSpaceParser (DashParser T.someSpace) commentStyle
+  someSpace = DashParser $ buildSomeSpaceParser T.someSpace commentStyle
 
 type ParseConstraint m = (Monad m, T.TokenParsing m)
 
@@ -188,3 +192,6 @@ expressions = do
 
 commentStyle :: CommentStyle
 commentStyle = CommentStyle "" "" ";" False
+
+parseFromString :: String -> Result (Term String)
+parseFromString = parseString (runParser (whiteSpace *> expression <* whiteSpace)) mempty

@@ -116,7 +116,7 @@ evalString args (stripPrefix ":let " -> Just newbinding) = do
         lift $ Env.env .=  (name, y) : environment  -- TODO: %= or something?
         environment' <- lift $ use Env.env
         liftIO . print $ environment'
-      Env.Error -> liftIO . err $ text "Could not produce a valid result."
+      _ -> liftIO . err $ text "Could not produce a valid result."
     Failure d -> liftIO . putStrLn $ show d
 evalString _ (stripPrefix ":parse " -> Just expr) =
   liftIO $ case parseFromString expr of
@@ -133,7 +133,7 @@ evalString' args s st = do
   liftIO $ case evaled of
    Success s' -> case s' of
      Env.Success y -> putStrLn . colorize $ show y
-     Env.Error -> err $ text "Could not produce a valid result."
+     _ -> err $ text "Could not produce a valid result."
    Failure d -> print d
 
 colorize :: String -> String

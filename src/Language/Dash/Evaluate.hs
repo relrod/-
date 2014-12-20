@@ -14,7 +14,7 @@ import Data.List (lookup)
 import Data.Maybe (maybe)
 import Prelude (($), Maybe (..), String, return)
 
-{-# ANN module "hlint: ignore Unused LANGUAGE pragma" #-}
+{-# ANN module "hlint: ignore 32e3344444444321q22222Unused LANGUAGE pragma" #-}
 
 evalStateful :: Term String -> State Environment (EvalResult Literal)
 evalStateful (Variable s) = do
@@ -23,11 +23,11 @@ evalStateful (Variable s) = do
 evalStateful (Literal y) = return $ Success y
 evalStateful (Lambda n l) = do
   let fn = \case
-        Error -> return Error
         Success x  -> do
           environment <- use env
           env .= (n, x) : environment
           evalStateful l
+        _ -> return Error
   e <- use env
   return $ Success (LiteralFunction (Environment e) fn)
 evalStateful (Apply t1 t2) = do
@@ -46,16 +46,16 @@ evalStateful (If x y z) = do
 evalStateful (LetRec s t1 (Just t2)) = do
   rec v <- evalStateful t1
   case v of
-    Error -> return Error
     Success res -> do
       e <- use env
       env .= (s, res) : e
       evalStateful t2
+    _ -> return Error
 evalStateful (LetRec s t1 Nothing) = do
   v <- evalStateful t1
   case v of
-    Error -> return Error
     Success res -> do
       e <- use env
       env .= (s, res) : e
       return Error  -- TODO: Better error handling
+    _ -> return Error

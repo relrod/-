@@ -12,7 +12,7 @@ import Data.List (isPrefixOf, stripPrefix)
 import Data.Maybe (isJust)
 import Data.Monoid
 import Language.Dash.Parser
-import Language.Dash.Environment
+import qualified Language.Dash.Environment as Env
 import Language.Dash.Evaluate
 import qualified Language.Haskell.HsColour as HsColour
 import qualified Language.Haskell.HsColour.Colourise as HsColour
@@ -56,12 +56,12 @@ triggerRepl args =
     Just name -> readFile name >>= flip (evalString' args) mempty
     Nothing   -> repl args
 
-cSearch :: String -> StateT Environment IO [Completion]
+cSearch :: String -> StateT Env.Environment IO [Completion]
 cSearch s = do
-  st <- use env
+  st <- use Env.env
   return $ simpleCompletion <$> filter (isPrefixOf s) ((('$' :) . fst) <$> st)
 
-cComplete :: CompletionFunc (StateT Environment IO)
+cComplete :: CompletionFunc (StateT Env.Environment IO)
 cComplete = completeWord Nothing " \t" cSearch
 
 repl :: Arguments -> IO ()
@@ -77,7 +77,7 @@ repl args = do
     }) (withInterrupt loop)) mempty
 
   where
-    loop :: InputT (StateT Environment IO) ()
+    loop :: InputT (StateT Env.Environment IO) ()
     loop = forever $ do
       minput <- handleInterrupt (return Nothing) $ getInputLine "dash> "
       case minput of
@@ -94,16 +94,16 @@ warn s =  putDoc $ yellow (text "Warning:") <+> s <> hardline
 err :: Doc -> IO ()
 err s = putDoc $ red (text "Error:") <+> s <> hardline
 
-evalString :: Arguments -> String -> InputT (StateT Environment IO) ()
+evalString :: Arguments -> String -> InputT (StateT Env.Environment IO) ()
 evalString _ ":let" = do
-  environment <- lift $ use env
+  environment <- lift $ use Env.env
   liftIO . putStrLn $ show environment
 evalString _ ":reset" = do
   lift $ put mempty
   liftIO . putStrLn $ "Environment cleared."
 evalString args (stripPrefix ":let " -> Just newbinding) = do
   let (name, binding) = second (dropWhile (==' ')) $ break (==' ') newbinding
-  st <- lift $ use env
+  st <- lift $ use Env.env
   when (isJust . lookup name $ st) $
     liftIO . warn $ text "Shadowing existing binding `" <> bold (text name) <> text "'."
   let parsed = parseFromString binding
@@ -111,29 +111,29 @@ evalString args (stripPrefix ":let " -> Just newbinding) = do
   when (showParse args) (liftIO . putStrLn . colorize . ppShow $ parsed)
   case evaled of
     Success s' -> case s' of
-      Just y -> do
-        environment <- lift $ use env
-        lift $ env .=  (name, y) : environment  -- TODO: %= or something?
-        environment' <- lift $ use env
+      Env.Success y -> do
+        environment <- lift $ use Env.env
+        lift $ Env.env .=  (name, y) : environment  -- TODO: %= or something?
+        environment' <- lift $ use Env.env
         liftIO . print $ environment'
-      Nothing -> liftIO . err $ text "Could not produce a valid result."
+      Env.Error -> liftIO . err $ text "Could not produce a valid result."
     Failure d -> liftIO . putStrLn $ show d
 evalString _ (stripPrefix ":parse " -> Just expr) =
   liftIO $ case parseFromString expr of
     Success s' -> putStrLn . colorize . ppShow $ s'
     Failure d -> print d
-evalString args s = liftIO . evalString' args s =<< Environment <$> lift (use env)
+evalString args s = liftIO . evalString' args s =<< Env.Environment <$> lift (use Env.env)
 
 -- | Evaluate a String of dash code with some extra "stuff" in the environment.
-evalString' :: Arguments -> String -> Environment -> IO ()
+evalString' :: Arguments -> String -> Env.Environment -> IO ()
 evalString' args s st = do
   let parsed = parseFromString s
       evaled = flip evalState st $ runEval parsed
   when (showParse args) (liftIO . putStrLn . colorize . ppShow $ parsed)
   liftIO $ case evaled of
    Success s' -> case s' of
-     Just y -> putStrLn . colorize $ show y
-     Nothing -> err $ text "Could not produce a valid result."
+     Env.Success y -> putStrLn . colorize $ show y
+     Env.Error -> err $ text "Could not produce a valid result."
    Failure d -> print d
 
 colorize :: String -> String
@@ -145,7 +145,7 @@ colorize =
     ""
     False
 
-runEval :: Result (Term String) -> State Environment (Result (Maybe Literal))
+runEval :: Result (Env.Term String) -> State Env.Environment (Result (Env.EvalResult Env.Literal))
 runEval (Success p) = do
   res <- evalStateful p
   return $ Success res

@@ -6,11 +6,12 @@
 module Language.Dash.Environment (
   Environment (..),
   Literal (..),
+  EvalResult (..),
   Term (..),
   getEnv, env
   ) where
 
---import Control.Applicative ((<$>))
+import Control.Applicative
 import Control.Lens
 import Control.Monad
 import Control.Monad.State.Strict (State)
@@ -20,11 +21,24 @@ import Prelude
   ((++), (+), (-), Bool, Enum, Integer, Maybe(..),
    Show(show), String, error, fromEnum, toEnum, lookup)
 
+-- TODO: Make this better than something isomorphic to Maybe.
+data EvalResult a = Success a | Error deriving (Functor, Show)
+
+instance Applicative EvalResult where
+  pure = Success
+  Success f <*> Success a = Success (f a)
+  _ <*> _ = Error
+
+instance Monad EvalResult where
+  return = pure
+  Success a >>= f = f a
+  _ >>= _ = Error
+
 data Literal
   = LiteralString String
   | LiteralInt Integer
   | LiteralBool Bool
-  | LiteralFunction Environment (Maybe Literal -> State Environment (Maybe Literal))
+  | LiteralFunction Environment (EvalResult Literal -> State Environment (EvalResult Literal))
 
 instance Show Literal where
   show (LiteralString s)     = show s

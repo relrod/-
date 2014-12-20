@@ -14,7 +14,7 @@ import Data.List (lookup)
 import Data.Maybe (maybe)
 import Prelude (($), Maybe (..), String, return)
 
-{-# ANN module "hlint: ignore 32e3344444444321q22222Unused LANGUAGE pragma" #-}
+{-# ANN module "hlint: ignore Unused LANGUAGE pragma" #-}
 
 evalStateful :: Term String -> State Environment (EvalResult Literal)
 evalStateful (Variable s) = do

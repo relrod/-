@@ -106,16 +106,17 @@ evalString args (stripPrefix ":let " -> Just newbinding) = do
   when (isJust . lookup name $ st) $
     liftIO . warn $ text "Shadowing existing binding `" <> bold (text name) <> text "'."
   let parsed = parseFromString binding
-  evaled <- lift $ hoistState $ runEval parsed
+      evaled = flip evalStateT (Env.Environment st) $ runEval parsed
   when (showParse args) (liftIO . putStrLn . colorize . ppShow $ parsed)
-  case evaled of
-    Success s' -> case s' of
-      y -> do
-        environment <- lift $ use Env.env
-        lift $ Env.env .=  (name, y) : environment  -- TODO: %= or something?
-        environment' <- lift $ use Env.env
-        liftIO . print $ environment'
-    Failure s' -> liftIO $ print s'
+  case runIdentity . runErrorT $ evaled of
+      Right s' -> case s' of
+        Success suc -> do
+          environment <- lift $ use Env.env
+          lift $ Env.env .=  (name, suc) : environment  -- TODO: %= or something?
+          environment' <- lift $ use Env.env
+          liftIO . print $ environment'
+        Failure d -> liftIO . print $ d
+      Left s' -> liftIO . print $ s'
 evalString _ (stripPrefix ":parse " -> Just expr) =
   liftIO $ case parseFromString expr of
     Success s' -> putStrLn . colorize . ppShow $ s'
@@ -128,7 +129,7 @@ evalString' args s st = do
   let parsed = parseFromString s
       evaled = flip evalStateT st $ runEval parsed
   when (showParse args) (liftIO . putStrLn . colorize . ppShow $ parsed)
-  liftIO $ case runIdentity . runErrorT $  evaled of
+  liftIO $ case runIdentity . runErrorT $ evaled of
    Right s' -> putStrLn . colorize $ show s'
    Left s'  -> print s'
 
@@ -146,7 +147,3 @@ runEval (Success p) = do
   res <- evalStateful p
   return $ Success res
 runEval (Failure x) = return $ Failure x
-
-hoistState :: Monad m => Env.EvalResultT a -> StateT s m a
-hoistState = error ""
---hoistState = StateT . (return .) . runState

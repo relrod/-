@@ -5,8 +5,7 @@ import Control.Applicative
 import Control.Arrow hiding ((<+>), loop)
 import Control.Lens
 import Control.Monad
-import Control.Monad.IO.Class
-import Control.Monad.Trans
+import Control.Monad.Error
 import Control.Monad.Trans.State.Strict
 import Data.List (isPrefixOf, stripPrefix)
 import Data.Maybe (isJust)
@@ -111,13 +110,12 @@ evalString args (stripPrefix ":let " -> Just newbinding) = do
   when (showParse args) (liftIO . putStrLn . colorize . ppShow $ parsed)
   case evaled of
     Success s' -> case s' of
-      Env.Success y -> do
+      y -> do
         environment <- lift $ use Env.env
         lift $ Env.env .=  (name, y) : environment  -- TODO: %= or something?
         environment' <- lift $ use Env.env
         liftIO . print $ environment'
-      _ -> liftIO . err $ text "Could not produce a valid result."
-    Failure d -> liftIO . putStrLn $ show d
+    Failure s' -> liftIO $ print s'
 evalString _ (stripPrefix ":parse " -> Just expr) =
   liftIO $ case parseFromString expr of
     Success s' -> putStrLn . colorize . ppShow $ s'
@@ -128,13 +126,11 @@ evalString args s = liftIO . evalString' args s =<< Env.Environment <$> lift (us
 evalString' :: Arguments -> String -> Env.Environment -> IO ()
 evalString' args s st = do
   let parsed = parseFromString s
-      evaled = flip evalState st $ runEval parsed
+      evaled = flip evalStateT st $ runEval parsed
   when (showParse args) (liftIO . putStrLn . colorize . ppShow $ parsed)
-  liftIO $ case evaled of
-   Success s' -> case s' of
-     Env.Success y -> putStrLn . colorize $ show y
-     _ -> err $ text "Could not produce a valid result."
-   Failure d -> print d
+  liftIO $ case runIdentity . runErrorT $  evaled of
+   Right s' -> putStrLn . colorize $ show s'
+   Left s'  -> print s'
 
 colorize :: String -> String
 colorize =
@@ -145,11 +141,12 @@ colorize =
     ""
     False
 
-runEval :: Result (Env.Term String) -> State Env.Environment (Result (Env.EvalResult Env.Literal))
+runEval :: Result (Env.Term String) -> Env.EvalResultT (Result Env.Literal)
 runEval (Success p) = do
   res <- evalStateful p
   return $ Success res
 runEval (Failure x) = return $ Failure x
 
-hoistState :: Monad m => State s a -> StateT s m a
-hoistState = StateT . (return .) . runState
+hoistState :: Monad m => Env.EvalResultT a -> StateT s m a
+hoistState = error ""
+--hoistState = StateT . (return .) . runState

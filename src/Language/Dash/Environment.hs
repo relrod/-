@@ -4,6 +4,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module Language.Dash.Environment (
+  EvalResultT,
   Environment (..),
   Literal (..),
   EvalResult (..),
@@ -14,7 +15,8 @@ module Language.Dash.Environment (
 import Control.Applicative
 import Control.Lens
 import Control.Monad
-import Control.Monad.State.Strict (State)
+import Control.Monad.Error
+import Control.Monad.State.Strict (StateT)
 --import Data.Bifunctor
 import Data.Monoid
 import Prelude
@@ -23,6 +25,8 @@ import Prelude
 
 -- TODO: Make this better than something isomorphic to Maybe.
 data EvalResult a = Success a | Error deriving (Functor, Show)
+
+type EvalResultT a = StateT Environment (ErrorT String Identity) a
 
 instance Applicative EvalResult where
   pure = Success
@@ -38,7 +42,7 @@ data Literal
   = LiteralString String
   | LiteralInt Integer
   | LiteralBool Bool
-  | LiteralFunction Environment (EvalResult Literal -> State Environment (EvalResult Literal))
+  | LiteralFunction Environment (Literal -> EvalResultT Literal)
 
 instance Show Literal where
   show (LiteralString s)     = show s

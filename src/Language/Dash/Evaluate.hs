@@ -13,7 +13,7 @@ import Control.Monad.Error
 import Data.List (lookup)
 import Data.Maybe (maybe)
 import Data.Monoid ((<>))
-import Prelude (($), Maybe (..), String)
+import Prelude (($), Maybe (..), String, show)
 
 {-# ANN module "hlint: ignore Unused LANGUAGE pragma" #-}
 
@@ -41,7 +41,7 @@ evalStateful (If x y z) = do
   case xRes of
     LiteralBool res ->
       evalStateful $ if res then y else z
-    _ -> throwError "Type error"
+    _ -> throwError $ "Type error: " <> show x <> " is not a boolean value."
 evalStateful (LetRec s t1 (Just t2)) = do
   rec v <- evalStateful t1
   case v of

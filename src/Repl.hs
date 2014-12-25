@@ -130,8 +130,10 @@ evalString' args s st = do
       evaled = flip evalStateT st $ runEval parsed
   when (showParse args) (liftIO . putStrLn . colorize . ppShow $ parsed)
   liftIO $ case runIdentity . runErrorT $ evaled of
-   Right s' -> putStrLn . colorize $ show s'
-   Left s'  -> print s'
+    Right x -> case x of
+      Success s' -> putStrLn . colorize . ppShow $ s'
+      Failure d -> print d
+    Left s'  -> print s'
 
 colorize :: String -> String
 colorize =

@@ -23,7 +23,7 @@ evalStateful (Variable s) = do
   maybe (throwError $ "No such binding: " <> s) return (lookup s environment)
 evalStateful (Literal y) = return y
 evalStateful (Lambda n l) = do
-  let fn = \x -> do
+  let fn x = do
         environment <- use env
         env .= (n, x) : environment
         evalStateful l

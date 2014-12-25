@@ -116,7 +116,7 @@ evalString args (stripPrefix ":let " -> Just newbinding) = do
           environment' <- lift $ use Env.env
           liftIO . print $ environment'
         Failure d -> liftIO . print $ d
-      Left s' -> liftIO . print $ s'
+      Left s' -> liftIO . putStrLn $ s'
 evalString _ (stripPrefix ":parse " -> Just expr) =
   liftIO $ case parseFromString expr of
     Success s' -> putStrLn . colorize . ppShow $ s'
@@ -133,7 +133,7 @@ evalString' args s st = do
     Right x -> case x of
       Success s' -> putStrLn . colorize . ppShow $ s'
       Failure d -> print d
-    Left s'  -> print s'
+    Left s'  -> putStrLn s'
 
 colorize :: String -> String
 colorize =

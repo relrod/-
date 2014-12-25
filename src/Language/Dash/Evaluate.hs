@@ -35,7 +35,7 @@ evalStateful (Apply t1 t2) = do
     LiteralFunction _ f -> do
       t2Res <- evalStateful t2
       f t2Res
-    _ -> throwError "Type error"
+    _ -> throwError "Type error: Applied a non-lambda."
 evalStateful (If x y z) = do
   xRes <- evalStateful x
   case xRes of

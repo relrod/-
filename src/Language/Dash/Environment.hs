@@ -9,7 +9,10 @@ module Language.Dash.Environment (
   Literal (..),
   EvalResult (..),
   Term (..),
-  getEnv, env
+  getEnv,
+  env,
+  intToDash,
+  dashToInt
   ) where
 
 import Control.Applicative
@@ -17,11 +20,10 @@ import Control.Lens
 import Control.Monad
 import Control.Monad.Error
 import Control.Monad.State.Strict (StateT)
---import Data.Bifunctor
 import Data.Monoid
 import Prelude
-  ((++), (+), (-), Bool, Enum, Integer, Maybe(..),
-   Show(show), String, error, fromEnum, toEnum, lookup)
+  ((++), (+), (-), Bool, Integer, Maybe(..),
+   Show(show), String, lookup)
 
 -- TODO: Make this better than something isomorphic to Maybe.
 data EvalResult a = Success a | Error deriving (Functor, Show)
@@ -66,13 +68,15 @@ data Term a
   | LetRec a (Term a) (Maybe (Term a))
   deriving (Functor, Show)
 
-instance Enum (Term String) where
-  toEnum 0 = Variable "x"
-  toEnum x = Lambda "x" (toEnum (x - 1))
-  fromEnum t = f t 0 where
-    f (Variable _) i  = i
-    f (Lambda _ t') i = f t' (i + 1)
-    f _            _  = error "Not a church-encodable term"
+intToDash :: Integer -> Term String
+intToDash 0 = Variable "x"
+intToDash x = Lambda "x" (intToDash (x - 1))
+
+dashToInt :: Term String -> Maybe Integer
+dashToInt t = f t 0 where
+  f (Variable _) i  = Just i
+  f (Lambda _ t') i = f t' (i + 1)
+  f _ _             = Nothing
 
 --instance Monad Term where
 --  return = Variable

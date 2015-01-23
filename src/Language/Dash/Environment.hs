@@ -29,27 +29,16 @@ data EvalError = Error String
                | TypeError String
                deriving (Show)
 
-type EvalResultT = StateT Environment (ErrorT EvalError Identity) Literal
+type EvalResultT a = StateT Environment (ErrorT EvalError Identity) a
 
 instance Error EvalError where
   strMsg = Error
-
-{-instance Applicative EvalError where
-  pure = Success
-  Success f <*> Success a = Success (f a)
-  _ <*> _ = Error
-
-instance Monad EvalError where
-  return = pure
-  Success a >>= f = f a
-  _ >>= _ = Error
--}
 
 data Literal
   = LiteralString String
   | LiteralInt Integer
   | LiteralBool Bool
-  | LiteralFunction Environment (Literal -> EvalResultT)
+  | LiteralFunction Environment (Literal -> EvalResultT Literal)
 
 instance Show Literal where
   show (LiteralString s)     = show s

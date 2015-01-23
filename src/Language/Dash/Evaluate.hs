@@ -35,13 +35,13 @@ evalStateful (Apply t1 t2) = do
     LiteralFunction _ f -> do
       t2Res <- evalStateful t2
       f t2Res
-    _ -> throwError (Error "Type error: Applied a non-lambda.")
+    _ -> throwError (TypeError "Type error: Applied a non-lambda.")
 evalStateful (If x y z) = do
   xRes <- evalStateful x
   case xRes of
     LiteralBool res ->
       evalStateful $ if res then y else z
-    _ -> throwError (Error $ "Type error: " <> show x <> " is not a boolean value.")
+    _ -> throwError (TypeError $ "Type error: " <> show x <> " is not a boolean value.")
 evalStateful (LetRec s t1 (Just t2)) = do
   rec v <- evalStateful t1
   case v of

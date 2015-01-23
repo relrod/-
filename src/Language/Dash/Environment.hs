@@ -26,6 +26,7 @@ import Prelude
 
 data EvalError a = Error String
                  | NonExistentBinding String
+                 | TypeError String
                  deriving (Functor, Show)
 
 type EvalResultT a = StateT Environment (ErrorT (EvalError a) Identity) Literal

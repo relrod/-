@@ -7,7 +7,7 @@ module Language.Dash.Environment (
   EvalResultT,
   Environment (..),
   Literal (..),
-  EvalResult (..),
+  EvalError (..),
   Term (..),
   getEnv,
   env,
@@ -15,7 +15,6 @@ module Language.Dash.Environment (
   dashToInt
   ) where
 
-import Control.Applicative
 import Control.Lens
 import Control.Monad
 import Control.Monad.Error
@@ -25,20 +24,25 @@ import Prelude
   ((++), (+), (-), Bool, Integer, Maybe(..),
    Show(show), String, lookup)
 
--- TODO: Make this better than something isomorphic to Maybe.
-data EvalResult a = Success a | Error deriving (Functor, Show)
+data EvalError a = Error String
+                 | NonExistentBinding String
+                 deriving (Functor, Show)
 
-type EvalResultT a = StateT Environment (ErrorT String Identity) a
+type EvalResultT a = StateT Environment (ErrorT (EvalError a) Identity) Literal
 
-instance Applicative EvalResult where
+instance Error (EvalError Literal) where
+  strMsg = Error
+
+{-instance Applicative EvalError where
   pure = Success
   Success f <*> Success a = Success (f a)
   _ <*> _ = Error
 
-instance Monad EvalResult where
+instance Monad EvalError where
   return = pure
   Success a >>= f = f a
   _ >>= _ = Error
+-}
 
 data Literal
   = LiteralString String

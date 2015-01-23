@@ -20,7 +20,7 @@ import Prelude (($), Maybe (..), String, show)
 evalStateful :: Term String -> EvalResultT Literal
 evalStateful (Variable s) = do
   environment <- use env
-  maybe (throwError $ "No such binding: " <> s) return (lookup s environment)
+  maybe (throwError (NonExistentBinding s)) return (lookup s environment)
 evalStateful (Literal y) = return y
 evalStateful (Lambda n l) = do
   let fn x = do
@@ -35,13 +35,13 @@ evalStateful (Apply t1 t2) = do
     LiteralFunction _ f -> do
       t2Res <- evalStateful t2
       f t2Res
-    _ -> throwError "Type error: Applied a non-lambda."
+    _ -> throwError (Error "Type error: Applied a non-lambda.")
 evalStateful (If x y z) = do
   xRes <- evalStateful x
   case xRes of
     LiteralBool res ->
       evalStateful $ if res then y else z
-    _ -> throwError $ "Type error: " <> show x <> " is not a boolean value."
+    _ -> throwError (Error $ "Type error: " <> show x <> " is not a boolean value.")
 evalStateful (LetRec s t1 (Just t2)) = do
   rec v <- evalStateful t1
   case v of
@@ -53,4 +53,4 @@ evalStateful (LetRec s t1 Nothing) = do
   v <- evalStateful t1
   e <- use env
   env .= (s, v) : e
-  throwError "error"
+  throwError (Error "error")

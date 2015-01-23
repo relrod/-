@@ -17,7 +17,7 @@ import Prelude (($), Maybe (..), String, show)
 
 {-# ANN module "hlint: ignore Unused LANGUAGE pragma" #-}
 
-evalStateful :: Term String -> EvalResultT Literal
+evalStateful :: Term String -> EvalResultT
 evalStateful (Variable s) = do
   environment <- use env
   maybe (throwError (NonExistentBinding s)) return (lookup s environment)

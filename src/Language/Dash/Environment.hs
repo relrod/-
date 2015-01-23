@@ -24,14 +24,14 @@ import Prelude
   ((++), (+), (-), Bool, Integer, Maybe(..),
    Show(show), String, lookup)
 
-data EvalError a = Error String
-                 | NonExistentBinding String
-                 | TypeError String
-                 deriving (Functor, Show)
+data EvalError = Error String
+               | NonExistentBinding String
+               | TypeError String
+               deriving (Show)
 
-type EvalResultT a = StateT Environment (ErrorT (EvalError a) Identity) Literal
+type EvalResultT = StateT Environment (ErrorT EvalError Identity) Literal
 
-instance Error (EvalError Literal) where
+instance Error EvalError where
   strMsg = Error
 
 {-instance Applicative EvalError where
@@ -49,7 +49,7 @@ data Literal
   = LiteralString String
   | LiteralInt Integer
   | LiteralBool Bool
-  | LiteralFunction Environment (Literal -> EvalResultT Literal)
+  | LiteralFunction Environment (Literal -> EvalResultT)
 
 instance Show Literal where
   show (LiteralString s)     = show s

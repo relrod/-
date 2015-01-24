@@ -133,7 +133,7 @@ evalString' args s st = do
     Right x -> case x of
       Success s' -> putStrLn . colorize . ppShow $ s'
       Failure d -> print d
-    Left s'  -> print s'
+    Left s'  -> err . text . show $  s'
 
 colorize :: String -> String
 colorize =

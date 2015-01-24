@@ -27,7 +27,11 @@ import Prelude
 data EvalError = Error String
                | NonExistentBinding String
                | TypeError String
-               deriving (Show)
+
+instance Show EvalError where
+  show (Error s)              = s
+  show (NonExistentBinding s) = "Reference to unknown variable: " ++ s
+  show (TypeError s)          = "Type error: " ++ s
 
 type EvalResultT a = StateT Environment (ErrorT EvalError Identity) a
 

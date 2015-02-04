@@ -1,4 +1,6 @@
+{-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -19,6 +21,7 @@ import Control.Lens
 import Control.Monad
 import Control.Monad.Error
 import Control.Monad.State.Strict (StateT)
+import Data.Foldable
 import Data.Monoid
 import Prelude
   ((++), (+), (-), Bool, Integer, Maybe(..),
@@ -64,7 +67,7 @@ data Term a
   | Literal Literal
   | If (Term a) (Term a) (Term a)
   | LetRec a (Term a) (Maybe (Term a))
-  deriving (Functor, Show)
+  deriving (Foldable, Functor, Show, Traversable)
 
 intToDash :: Integer -> Term String
 intToDash 0 = Variable "x"
@@ -87,4 +90,3 @@ dashToInt t = f t 0 where
 
 getEnv :: Environment -> String -> Maybe Literal
 getEnv (Environment e) s = lookup s e
-

@@ -24,7 +24,7 @@ library
                      , filepath >= 1.2 && < 2
                      , haskeline >= 0.7 && < 1
                      , hscolour >= 1.2 && < 2
-                     , lens >= 4.5 && < 4.8
+                     , lens >= 4.5 && < 5
                      , mtl >= 2 && < 3
                      , parsers >= 0.10 && < 1
                      , transformers >= 0.3 && < 0.5
@@ -45,7 +45,7 @@ executable dashrepl
                      , filepath >= 1.2 && < 2
                      , haskeline >= 0.7 && < 1
                      , hscolour >= 1.2 && < 2
-                     , lens >= 4.5 && < 4.8
+                     , lens >= 4.5 && < 5
                      , mtl >= 2 && < 3
                      , optparse-applicative >= 0.10 && < 0.12
                      , parsers >= 0.10 && < 1

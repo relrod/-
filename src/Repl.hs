@@ -55,7 +55,7 @@ main = OA.execParser opts >>= triggerRepl
      <> OA.header "dashrepl - a REPL for -" )
 
 triggerRepl :: Arguments -> IO ()
-triggerRepl args = do
+triggerRepl args =
   case code args of
     Just code' -> evalString' args code' mempty
     Nothing -> case filename args of

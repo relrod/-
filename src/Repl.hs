@@ -30,6 +30,7 @@ data Arguments = Arguments
   {
     showParse :: Bool
   , filename  :: Maybe FilePath
+  , code      :: Maybe String
   }
 
 parseArgs :: OA.Parser Arguments
@@ -40,6 +41,10 @@ parseArgs = Arguments
   <*> optional (OA.argument OA.str
       ( OA.help "Evaluate the file at this path"
      <> OA.metavar "FILENAME") )
+  <*> optional (OA.strOption
+      ( OA.long "evaluate"
+     <> OA.short 'e'
+     <> OA.metavar "CODE") )
 
 main :: IO ()
 main = OA.execParser opts >>= triggerRepl
@@ -50,10 +55,12 @@ main = OA.execParser opts >>= triggerRepl
      <> OA.header "dashrepl - a REPL for -" )
 
 triggerRepl :: Arguments -> IO ()
-triggerRepl args =
-  case filename args of
-    Just name -> readFile name >>= flip (evalString' args) mempty
-    Nothing   -> repl args
+triggerRepl args = do
+  case code args of
+    Just code' -> evalString' args code' mempty
+    Nothing -> case filename args of
+      Just name -> readFile name >>= flip (evalString' args) mempty
+      Nothing   -> repl args
 
 cSearch :: String -> StateT Env.Environment IO [Completion]
 cSearch s = do

@@ -52,7 +52,7 @@ executable dashrepl
                      , pretty-show >= 1.6 && < 1.7
                      , semigroups >= 0.8 && < 1
                      , transformers >= 0.3 && < 0.5
-                     , trifecta >= 1.4 && < 2
+                     , trifecta >= 1.5.2 && < 2
   hs-source-dirs:      src
   default-language:    Haskell2010
   ghc-options:         -Wall -O2

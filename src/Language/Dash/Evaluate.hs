@@ -1,6 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE RecursiveDo #-}
 
 module Language.Dash.Evaluate (
   evalStateful
@@ -10,31 +9,27 @@ import Language.Dash.Environment
 
 import Control.Lens
 import Control.Monad.Error
+import Control.Monad.State
 import Data.List (lookup)
 import Data.Maybe (maybe)
 import Data.Monoid ((<>))
 import Prelude (($), Maybe (..), String, show)
 
-{-# ANN module "hlint: ignore Unused LANGUAGE pragma" #-}
-
 evalStateful :: Term String -> EvalResultT Literal
 evalStateful (Variable s) = do
-  environment <- use env
-  maybe (throwError (NonExistentBinding s)) return (lookup s environment)
+  literal <- uses env (lookup s)
+  maybe (throwError (NonExistentBinding s)) return literal
 evalStateful (Literal y) = return y
 evalStateful (Lambda n l) = do
   let fn x = do
-        environment <- use env
-        env .= (n, x) : environment
+        env <>= return (n, x)
         evalStateful l
-  e <- use env
-  return $ LiteralFunction (Environment e) fn
+  e <- get
+  return $ LiteralFunction e fn
 evalStateful (Apply t1 t2) = do
   t1Res <- evalStateful t1
   case t1Res of
-    LiteralFunction _ f -> do
-      t2Res <- evalStateful t2
-      f t2Res
+    LiteralFunction _ f -> evalStateful t2 >>= f
     _ -> throwError (TypeError "Type error: Applied a non-lambda.")
 evalStateful (If x y z) = do
   xRes <- evalStateful x
@@ -43,14 +38,10 @@ evalStateful (If x y z) = do
       evalStateful $ if res then y else z
     _ -> throwError (TypeError $ "Type error: " <> show x <> " is not a boolean value.")
 evalStateful (LetRec s t1 (Just t2)) = do
-  rec v <- evalStateful t1
-  case v of
-    res -> do
-      e <- use env
-      env .= (s, res) : e
-      evalStateful t2
+  res <- evalStateful t1
+  env <>= return (s, res)
+  evalStateful t2
 evalStateful (LetRec s t1 Nothing) = do
   v <- evalStateful t1
-  e <- use env
-  env .= (s, v) : e
+  env <>= return (s, v)
   throwError (Error "error")

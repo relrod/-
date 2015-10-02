@@ -56,26 +56,19 @@ type ParseConstraint m = (Monad m, T.TokenParsing m)
 --
 -- >>> (λx. (λy. (λz. foo)))
 lambda :: ParseConstraint m => m (Term String)
-lambda =
-  let
-    l = do
-      _ <- char 'λ'
-      vars <- some alphaNum `sepBy1` spaces
-      _ <- char '.'
-      spaces
-      body <- lambda
-      return $ foldr Lambda body vars
-    app = do
-      applications <- some expression
-      return $ foldl1 Apply applications
-  in choice [l, app]
+lambda = do
+  _ <- char 'λ'
+  vars <- some alphaNum `sepBy1` spaces
+  _ <- char '.'
+  spaces
+  body <- expression
+  return $ foldr Lambda body vars
 
 -- | Parses a variable. A variable in dash is given by @$@ followed by an
 -- alphanumeric identifier, because we like stealing crappy ideas from PHP,
 -- apparently.
 variable :: ParseConstraint m => m (Term String)
 variable = do
-  _ <- char '$'
   name <- some alphaNum
   return $ Variable name
 
@@ -143,6 +136,15 @@ toplevelBinding = do
   body <- expression
   return $ LetRec var body Nothing
 
+apply :: ParseConstraint m => m (Term String)
+apply = do
+    vars <- (braxpression <|> literal <|> variable) `sepBy1` spaces
+    return $ foldl1 Apply vars
+  where braxpression = between (char '(') (char ')') expression
+
+literal :: ParseConstraint m => m (Term String)
+literal = literalInt <|> literalBool <|> literalString
+
 -- | An expression is where the magic happens. It is a formulation of all of
 -- the other parsers we define. It is comprised of literals (such as
 -- 'literalInt' and 'literalString') and s-expressions (@(@...@)@ lambdas,
@@ -150,20 +152,30 @@ toplevelBinding = do
 expression :: ParseConstraint m => m (Term String)
 expression = do
   spaces
-  choice [ variable
-         , sExp
-         , literalInt
-         , literalString
-         , literalBool
+  choice [ braxpression
+         , literal
+         , lambda
          , ifExp
+         , letIn
+         , apply
          ]
   where
-    sExp = do
+    braxpression = between (char '(') (char ')') expression
+{-  choice [ lambda
+         , ifExp
+         , literalInt
+         , literalBool
+         , literalString
+         , parensExpr
+         , assignment
+         ]
+  where
+    parensExpr = do
       _ <- char '('
-      x <- choice [lambda, ifExp, letRecBinding, toplevelBinding]
+      expr <- expression
       _ <- char ')'
-      return x
-
+      return expr
+-}
 -- | Parses a literal 'Integer'.
 literalInt :: ParseConstraint m => m (Term String)
 literalInt =
@@ -183,7 +195,15 @@ literalString = do
   x <- between (char '"') (char '"') (some $ noneOf "\"")
   return $ Literal . LiteralString $ x
 
--- | Generates a list of expressions up to 'eof' and returns them.
+letIn :: ParseConstraint m => m (Term String)
+letIn = do
+  name <- between (string "let" <* spaces) (spaces *> char '=' <* spaces) $ some alphaNum
+  value <- expression
+  _ <- between spaces spaces $ string "in"
+  expr <- expression
+  return $ LetIn name value expr
+
+-- | Generates a list of statements up to 'eof' and returns them.
 expressions :: ParseConstraint m => m [Term String]
 expressions = do
   x <- some expression

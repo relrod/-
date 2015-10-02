@@ -62,6 +62,7 @@ instance Monoid Environment where
 
 data Term a
   = Variable a
+  | LetIn a (Term a) (Term a)
   | Apply (Term a) (Term a)
   | Lambda a (Term a)
   | Literal Literal

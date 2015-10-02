@@ -45,3 +45,7 @@ evalStateful (LetRec s t1 Nothing) = do
   v <- evalStateful t1
   env <>= return (s, v)
   throwError (Error "error")
+evalStateful (LetIn name term expr) = do
+  v <- evalStateful term
+  env <>= return (name, v)
+  evalStateful expr

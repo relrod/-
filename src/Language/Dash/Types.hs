@@ -13,13 +13,13 @@ instance Show Term where
 
 data Nameless
   = NVar Int
-  | NAbs Nameless
+  | NAbs String Nameless
   | NApp Nameless Nameless
   deriving Eq
 
 instance Show Nameless where
   show (NVar s) = show s
-  show (NAbs t) = "/. " ++ show t
+  show (NAbs _ t) = "/. " ++ show t
   show (NApp t1 t2) = show t1 ++ " " ++ show t2
 
 -- TODO: newtype + Reader monad

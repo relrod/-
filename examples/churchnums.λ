@@ -1,2 +1,0 @@
-(letrec [$z=(λx. (λy. $x)) $succ=(λx. (λy. (λz. ($y ($x $y $z)))))]
-  ($succ $z))

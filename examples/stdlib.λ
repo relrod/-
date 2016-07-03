@@ -1,6 +1,0 @@
-; Boolean operations
-
-:let and (λp q. (if $p $q false))
-:let not (λp. (if $p false true))
-:let or (λp q. (if $p true $q))
-:let xor (λp q. ($and ($or $p $q) ($not ($and $p $q))))

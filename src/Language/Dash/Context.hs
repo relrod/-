@@ -36,3 +36,13 @@ fv :: Term -> [String]
 fv (Var s) = [s]
 fv (Abs s t) = fv t \\ [s]
 fv (App t1 t2) = fv t1 `union` fv t2
+
+shift :: Int -> Int -> Nameless -> Nameless
+shift d c (NVar k) = if k < c then (NVar k) else NVar (k + d)
+shift d c (NAbs s t) = NAbs s (shift d (c + 1) t)
+shift d c (NApp t1 t2) = NApp (shift d c t1) (shift d c t2)
+
+subst :: Int -> Nameless -> Nameless -> Nameless
+subst j s (NVar k) = if k == j then s else NVar k
+subst j s (NAbs s' t1) = NAbs s' (subst (j + 1) (shift 1 0 s) t1)
+subst j s (NApp t1 t2) = NApp (subst j s t1) (subst j s t2)

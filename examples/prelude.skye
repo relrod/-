@@ -1,0 +1,2 @@
+glet id (fun x := x).
+glet id' id.

@@ -46,3 +46,6 @@ subst :: Int -> Nameless -> Nameless -> Nameless
 subst j s (NVar k) = if k == j then s else NVar k
 subst j s (NAbs s' t1) = NAbs s' (subst (j + 1) (shift 1 0 s) t1)
 subst j s (NApp t1 t2) = NApp (subst j s t1) (subst j s t2)
+
+betaReduce :: Nameless -> Nameless -> Nameless
+betaReduce t1 t2 = shift (-1) 0 (subst 0 (shift 1 0 t2) t1)

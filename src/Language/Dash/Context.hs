@@ -49,3 +49,9 @@ subst j s (NApp t1 t2) = NApp (subst j s t1) (subst j s t2)
 
 betaReduce :: Nameless -> Nameless -> Nameless
 betaReduce t1 t2 = shift (-1) 0 (subst 0 (shift 1 0 t2) t1)
+
+evaluate :: Nameless -> Nameless
+evaluate (NApp (NAbs _ t1) t2@(NAbs _ _)) = betaReduce t1 t2
+evaluate (NApp t1@(NAbs _ _) t2) = NApp t1 (evaluate t2)
+evaluate (NApp t1 t2) = NApp (evaluate t1) t2
+evaluate _ = error "No rule applies"

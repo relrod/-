@@ -1,10 +1,12 @@
 module Language.Dash.Utility where
 
 import System.Console.ANSI
+import Text.Trifecta
 
 import Language.Dash.Context
 import Language.Dash.Typecheck
 import Language.Dash.Types
+import Language.Dash.Parser.Skye
 
 colorType :: Either TypeError Type -> String
 colorType (Right t) =
@@ -36,3 +38,8 @@ prettyShowNameless :: Nameless -> String
 prettyShowNameless t =
   colorTerm (restoreNames [] t) ++ "\n" ++
   "   : " ++ colorType (typeOf [] t)
+
+parsePrint :: String -> IO ()
+parsePrint s =
+  let Success bbb = removeNames [] <$> parseString expr mempty s
+  in putStrLn . prettyShowNameless $ bbb

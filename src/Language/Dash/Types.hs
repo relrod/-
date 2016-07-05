@@ -6,6 +6,7 @@ data Term
   | App Term Term
   | TTrue
   | TFalse
+  | Nat Integer
   deriving Eq
 
 instance Show Term where
@@ -14,6 +15,7 @@ instance Show Term where
   show (App t1 t2) = "(" ++ show t1 ++ ") " ++ show t2
   show TTrue = "!t"
   show TFalse = "!f"
+  show (Nat n) = show n
 
 data Binding
   = NameBind
@@ -23,11 +25,13 @@ data Binding
 data Type
   = TBool
   | TAbs Type Type
+  | TNat
   deriving Eq
 
 instance Show Type where
   show TBool = "bool"
   show (TAbs t1 t2) = show t1 ++ " => " ++ show t2
+  show TNat = "nat"
 
 data Nameless
   = NVar Int
@@ -35,6 +39,7 @@ data Nameless
   | NApp Nameless Nameless
   | NTrue
   | NFalse
+  | NNat Integer
 
 instance Show Nameless where
   show (NVar s) = show s
@@ -42,6 +47,7 @@ instance Show Nameless where
   show (NApp t1 t2) = show t1 ++ " " ++ show t2
   show NTrue = "!t"
   show NFalse = "!f"
+  show (NNat n) = show n
 
 instance Eq Nameless where
   NVar x == NVar y = x == y
@@ -49,6 +55,7 @@ instance Eq Nameless where
   NApp t1 t2 == NApp t3 t4 = t1 == t3 && t2 == t4
   NTrue == NTrue = True
   NFalse == NFalse = True
+  NNat n == NNat m = n == m
   _ == _ = False
 
 -- TODO: newtype + Reader monad

@@ -25,3 +25,4 @@ typeOf ctx (NApp t1 t2) = do
                 then Right b
                 else Left (TypeMismatch a ty2)
     _ -> Left (TypeNonFunApp ty1 ty2)
+typeOf _ (NNat _) = Right TNat

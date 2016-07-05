@@ -10,18 +10,22 @@ import Language.Dash.Types
 typeBool :: Parser Type
 typeBool = string "bool" >> return TBool
 
+typeNat :: Parser Type
+typeNat = string "nat" >> return TNat
+
 function :: Parser Type -> Parser Type
 function p = p `chainr1` (string "=>" >> return TAbs)
 
 type' :: Parser Type
-type' = function $ typeBool
+type' = function $ choice [typeBool, typeNat]
 
 variable :: Parser (String, Type)
 variable = do
-  name <- some alphaNum
+  first <- lower
+  name <- many alphaNum
   _ <- char ':'
   ty <- type' <* many space
-  return (name, ty)
+  return (first:name, ty)
 
 --variableList :: Parser [Term]
 --variableList = fmap (fmap Var) (some variable)
@@ -44,22 +48,21 @@ fun = do
 
 bool :: Parser Term
 bool = do
-  x <- choice [ string "true"
-              , string "false"
+  x <- choice [ string "!t"
+              , string "!f"
               ]
   case x of
-    "true" -> return TTrue
-    "ffalse" -> return TFalse
-    _ -> fail "Boolean should be 'true' or 'false'"
+    "!t" -> return TTrue
+    "!f" -> return TFalse
+    _ -> fail "Boolean should be '!t' or '!f'"
 
--- | Global let
---
--- e.g. @glet const (fun x y := x).
---glet :: Parser Term
+nat :: Parser Term
+nat = Nat . read <$> some digit
 
 expr :: Parser Term
 expr = do
   _ <- spaces
   choice [ fun
          , fmap (Var . fst) variable
-         , bool]
+         , bool
+         , nat]

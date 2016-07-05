@@ -59,10 +59,16 @@ bool = do
 nat :: Parser Term
 nat = Nat . read <$> some digit
 
-expr :: Parser Term
-expr = do
-  _ <- spaces
+apply :: Parser Term -> Parser Term
+apply p = p `chainr1` (spaces *> string "|" <* spaces >> return App)
+
+thing :: Parser Term
+thing =
   choice [ fun
          , fmap (Var . fst) variable
          , bool
-         , nat]
+         , nat
+         ]
+
+expr :: Parser Term
+expr = apply thing

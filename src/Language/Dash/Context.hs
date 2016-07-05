@@ -68,29 +68,3 @@ evaluate (NApp (NAbs _ _ t1) t2@(NAbs _ _ _)) = betaReduce t1 t2
 evaluate (NApp t1@(NAbs _ _ _) t2) = NApp t1 (evaluate t2)
 evaluate (NApp t1 t2) = NApp (evaluate t1) t2
 evaluate _ = error "No rule applies"
-
--- TODO: Better error handling.
-typeFromCtx :: Context -> Int -> Type
-typeFromCtx ctx i =
-  let VarBind ty = snd (ctx !! i)
-  in ty
-
--- TODO: Better error handling.
-typeOf :: Context -> Nameless -> Type
-typeOf _ NTrue = TBool
-typeOf _ NFalse = TBool
-typeOf ctx (NVar i) = typeFromCtx ctx i
-typeOf ctx (NAbs s ty t) =
-  let ctx' = (s, VarBind ty) : ctx
-      ty' = typeOf ctx' t
-  in TAbs ty ty'
-typeOf ctx (NApp t1 t2) =
-  let ty1 = typeOf ctx t1
-      ty2 = typeOf ctx t2
-  in case ty1 of
-       TAbs a b -> if ty2 == a
-                   then b
-                   else error $
-                        "TYPE ERROR: Expected " ++ show a ++
-                        " but was given " ++ show ty2
-       _ -> error "TYPE ERROR: Application of non-function"

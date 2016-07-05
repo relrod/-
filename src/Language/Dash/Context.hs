@@ -8,21 +8,21 @@ import Language.Dash.Types
 indexCtx :: Context -> (String, Binding) -> Maybe Int
 indexCtx = flip elemIndex
 
-unsafeCtx :: Context -> String -> Int
+unsafeCtx :: Context -> String -> Either String Int
 unsafeCtx ctx str =
   maybe
-  (error ("'" ++ str ++ "' not in context"))
-  id
+  (Left $ "Unknown variable: " ++ str)
+  Right
   (indexCtx ctx (str, NameBind))
 
 -- | Convert a 'Term' to de Bruijn indexing ('Nameless')
-removeNames :: Context -> Term -> Nameless
-removeNames ctx (Var s) = NVar (unsafeCtx ctx s)
-removeNames ctx (Abs s ty t) = NAbs s ty (removeNames ((s, NameBind) : ctx) t)
-removeNames ctx (App t1 t2) = NApp (removeNames ctx t1) (removeNames ctx t2)
-removeNames _ TTrue = NTrue
-removeNames _ TFalse = NFalse
-removeNames _ (Nat n) = NNat n
+removeNames :: Context -> Term -> Either String Nameless
+removeNames ctx (Var s) = NVar <$> unsafeCtx ctx s
+removeNames ctx (Abs s ty t) = NAbs s ty <$> (removeNames ((s, NameBind) : ctx) t)
+removeNames ctx (App t1 t2) = NApp <$> (removeNames ctx t1) <*> (removeNames ctx t2)
+removeNames _ TTrue = return NTrue
+removeNames _ TFalse = return NFalse
+removeNames _ (Nat n) = return (NNat n)
 
 nextFresh :: Context -> String -> String
 nextFresh ctx s =

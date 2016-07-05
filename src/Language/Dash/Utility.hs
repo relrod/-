@@ -48,5 +48,8 @@ colorParseError = colorError "PARSE" "Could not parse input."
 parsePrint :: String -> IO ()
 parsePrint s =
   case removeNames [] <$> parseString expr mempty s of
-    Success bbb -> putStrLn . prettyShowNameless $ bbb
+    Success bbb ->
+      case bbb of
+        Right trm -> putStrLn . prettyShowNameless $ trm
+        Left str -> putStrLn (colorError "SCOPE" str)
     _ -> putStrLn colorParseError

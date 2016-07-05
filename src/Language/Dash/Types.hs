@@ -53,3 +53,7 @@ instance Eq Nameless where
 
 -- TODO: newtype + Reader monad
 type Context = [(String, Binding)]
+
+data TypeError
+  = TypeMismatch Type Type
+  | TypeNonFunApp Type Type

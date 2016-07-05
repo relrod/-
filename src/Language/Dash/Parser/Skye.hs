@@ -7,11 +7,22 @@ import Text.Trifecta
 
 import Language.Dash.Types
 
-variable :: Parser String
-variable = some alphaNum <* many space
+type' :: Parser Type
+type' = do
+  t <- choice [string "bool"]
+  case t of
+    "bool" -> return TBool
+    _ -> fail "Not a valid type given"
 
-variableList :: Parser [Term]
-variableList = fmap (fmap Var) (some variable)
+variable :: Parser (String, Type)
+variable = do
+  name <- some alphaNum
+  _ <- char ':'
+  ty <- type' <* many space
+  return (name, ty)
+
+--variableList :: Parser [Term]
+--variableList = fmap (fmap Var) (some variable)
 
 endOfExpr :: Parser ()
 endOfExpr = void $ char '.'
@@ -27,7 +38,17 @@ fun = do
   _ <- string ":="
   _ <- many space
   body <- expr --manyTill anyChar (try endOfExpr)
-  return $ foldr Abs body variables
+  return $ foldr (uncurry Abs) body variables
+
+bool :: Parser Term
+bool = do
+  x <- choice [ string "true"
+              , string "false"
+              ]
+  case x of
+    "true" -> return TTrue
+    "ffalse" -> return TFalse
+    _ -> fail "Boolean should be 'true' or 'false'"
 
 -- | Global let
 --
@@ -37,4 +58,6 @@ fun = do
 expr :: Parser Term
 expr = do
   _ <- spaces
-  choice [fun, fmap Var variable]
+  choice [ fun
+         , fmap (Var . fst) variable
+         , bool]

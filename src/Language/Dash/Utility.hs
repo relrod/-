@@ -13,11 +13,14 @@ colorType (Right t) =
     setSGRCode [SetColor Foreground Vivid Blue] ++
     show t ++
     setSGRCode [Reset]
-colorType (Left e) =
+colorType (Left e) = colorError "TYPE" (colorTypeError e)
+
+colorError :: String -> String -> String
+colorError kind msg =
   setSGRCode [SetColor Foreground Vivid Red] ++
-  "TYPE ERROR: " ++
+  kind ++ " ERROR: " ++
   setSGRCode [Reset] ++
-  colorTypeError e
+  msg
 
 colorTerm :: Term -> String
 colorTerm t =
@@ -39,7 +42,11 @@ prettyShowNameless t =
   colorTerm (restoreNames [] t) ++ "\n" ++
   "   : " ++ colorType (typeOf [] t)
 
+colorParseError :: String
+colorParseError = colorError "PARSE" "Could not parse input."
+
 parsePrint :: String -> IO ()
 parsePrint s =
-  let Success bbb = removeNames [] <$> parseString expr mempty s
-  in putStrLn . prettyShowNameless $ bbb
+  case removeNames [] <$> parseString expr mempty s of
+    Success bbb -> putStrLn . prettyShowNameless $ bbb
+    _ -> putStrLn colorParseError

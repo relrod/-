@@ -7,12 +7,14 @@ import Text.Trifecta
 
 import Language.Dash.Types
 
+typeBool :: Parser Type
+typeBool = string "bool" >> return TBool
+
+function :: Parser Type -> Parser Type
+function p = p `chainr1` (string "=>" >> return TAbs)
+
 type' :: Parser Type
-type' = do
-  t <- choice [string "bool"]
-  case t of
-    "bool" -> return TBool
-    _ -> fail "Not a valid type given"
+type' = function $ typeBool
 
 variable :: Parser (String, Type)
 variable = do

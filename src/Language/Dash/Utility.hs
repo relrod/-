@@ -22,17 +22,17 @@ colorError kind msg =
   setSGRCode [Reset] ++
   msg
 
-colorTerm :: Term -> Either TypeError Type -> String
-colorTerm t ty =
+colorTerm :: Nameless -> Term -> Either TypeError Type -> String
+colorTerm n t ty =
     setSGRCode [SetColor Foreground Vivid Yellow] ++
-    show t ++ showUnNat ++
+    show t ++ showUnNat ++ showBetaReduced n ++
     setSGRCode [Reset]
   where
     showUnNat =
       if ty == Right TNat
       then case unNat t of
-             Just n -> setSGRCode [SetColor Foreground Vivid Green] ++
-                       " (= " ++ show n ++ ")" ++
+             Just n' -> setSGRCode [SetColor Foreground Vivid Green] ++
+                       " (= " ++ show n' ++ ")" ++
                        setSGRCode [Reset]
              Nothing -> ""
       else ""
@@ -49,6 +49,12 @@ colorTerm t ty =
         f (Abs _ _ t') i = f t' (i + 1)
         f _ _ = Nothing
 
+    showBetaReduced (NApp _ _) =
+      let evaled = evaluate n
+          named = restoreNames [] evaled
+      in "\n  => " ++ colorTerm evaled named ty
+    showBetaReduced _ = ""
+
 colorTypeError :: TypeError -> String
 colorTypeError (TypeMismatch a b) =
   "Can't unify expected " ++ colorType (Right a) ++
@@ -61,7 +67,7 @@ colorTypeError (TypeNonFunApp a b) =
 prettyShowNameless :: Nameless -> String
 prettyShowNameless t =
   let ty = typeOf [] t
-  in colorTerm (restoreNames [] t) ty ++ "\n" ++
+  in colorTerm t (restoreNames [] t) ty ++ "\n" ++
   "   : " ++ colorType ty
 
 colorParseError :: String

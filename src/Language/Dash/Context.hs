@@ -75,14 +75,14 @@ isVal NFalse = True
 isVal (NNat _) = True
 isVal _ = False
 
-evaluate' :: Nameless -> Nameless
-evaluate' (NApp (NAbs _ _ t1) t2)
-  | isVal t2 = betaReduce t1 t2
-evaluate' (NApp t1 t2)
-  | isVal t1 = NApp t1 (evaluate' t2)
-evaluate' (NApp t1 t2) = NApp (evaluate' t1) t2
-evaluate' x = error $ "No rule applies for " ++ show x
-
 evaluate :: Nameless -> Nameless
-evaluate t = let t' = evaluate' t
-             in evaluate t'
+evaluate (NApp (NAbs _ _ t1) t2)
+  | isVal t2 = betaReduce t1 t2
+evaluate (NApp t1 t2)
+  | isVal t1 = NApp t1 (evaluate t2)
+evaluate (NApp t1 t2) = NApp (evaluate t1) t2
+evaluate x = error $ "No rule applies for " ++ show x
+
+--evaluate :: Nameless -> Nameless
+--evaluate t = let t' = evaluate' t
+--             in evaluate t'

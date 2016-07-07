@@ -3,6 +3,9 @@ module Language.Dash.Parser.Skye where
 import Control.Monad (void)
 import Text.Parser.Char
 import Text.Parser.Combinators
+import Text.Parser.Expression
+import Text.Parser.Token
+import Text.Parser.Token.Style
 import Text.Trifecta
 
 import Language.Dash.Types
@@ -26,9 +29,6 @@ variable = do
   _ <- char ':'
   ty <- type' <* many space
   return (first:name, ty)
-
---variableList :: Parser [Term]
---variableList = fmap (fmap Var) (some variable)
 
 endOfExpr :: Parser ()
 endOfExpr = void $ char '.'
@@ -66,13 +66,18 @@ nat = Nat . intToDash . read <$> some digit
 apply :: Parser Term -> Parser Term
 apply p = p `chainr1` (spaces *> string "|" <* spaces >> return App)
 
+expr :: Parser Term
+expr = buildExpressionParser table thing
+        <?> "expression"
+
+table  :: [[Operator Parser Term]]
+table   = [ [ Infix (App <$ reserve emptyOps "|") AssocLeft ] ]
+
 thing :: Parser Term
 thing =
-  choice [ fun
+  choice [ parens expr
+         , fun
          , fmap (Var . fst) variable
          , bool
          , nat
          ]
-
-expr :: Parser Term
-expr = apply thing

@@ -43,7 +43,7 @@ data Nameless
 
 instance Show Nameless where
   show (NVar s) = show s
-  show (NAbs _ ty t) = "/. (" ++ show t ++ ":" ++ show ty ++ ")"
+  show (NAbs _ ty t) = "(/. " ++ show t ++ ":" ++ show ty ++ ")"
   show (NApp t1 t2) = show t1 ++ " " ++ show t2
   show NTrue = "!t"
   show NFalse = "!f"

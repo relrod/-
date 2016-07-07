@@ -68,8 +68,17 @@ subst _ _ (NNat n) = NNat n
 betaReduce :: Nameless -> Nameless -> Nameless
 betaReduce t1 t2 = shift (-1) 0 (subst 0 (shift 1 0 t2) t1)
 
+isVal :: Nameless -> Bool
+isVal (NApp _ _) = True
+isVal NTrue = True
+isVal NFalse = True
+isVal (NNat _) = True
+isVal _ = False
+
 evaluate :: Nameless -> Nameless
-evaluate (NApp (NAbs _ _ t1) t2@(NAbs _ _ _)) = betaReduce t1 t2
-evaluate (NApp t1@(NAbs _ _ _) t2) = NApp t1 (evaluate t2)
+evaluate (NApp (NAbs _ _ t1) t2)
+  | isVal t2 = betaReduce t1 t2
+evaluate (NApp t1 t2)
+  | isVal t1 = NApp t1 (evaluate t2)
 evaluate (NApp t1 t2) = NApp (evaluate t1) t2
-evaluate _ = error "No rule applies"
+evaluate x = error $ "No rule applies for " ++ show x

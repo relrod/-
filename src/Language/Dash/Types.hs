@@ -64,3 +64,4 @@ type Context = [(String, Binding)]
 data TypeError
   = TypeMismatch Type Type
   | TypeNonFunApp Type Type
+  deriving (Eq, Show)

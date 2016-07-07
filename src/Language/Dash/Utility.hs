@@ -22,11 +22,32 @@ colorError kind msg =
   setSGRCode [Reset] ++
   msg
 
-colorTerm :: Term -> String
-colorTerm t =
+colorTerm :: Term -> Either TypeError Type -> String
+colorTerm t ty =
     setSGRCode [SetColor Foreground Vivid Yellow] ++
-    show t ++
+    show t ++ showUnNat ++
     setSGRCode [Reset]
+  where
+    showUnNat =
+      if ty == Right TNat
+      then case unNat t of
+             Just n -> setSGRCode [SetColor Foreground Vivid Green] ++
+                       " (= " ++ show n ++ ")" ++
+                       setSGRCode [Reset]
+             Nothing -> ""
+      else ""
+
+    -- This is somewhat hacky. We should probably just lose the "Nat"
+    -- constructor. We have types implemented, so we don't really need it for
+    -- tracking anymore.
+    unNat :: Term -> Maybe Integer
+    unNat tt = f tt 0
+      where
+        f (Nat (Abs _ _ (Var _))) i = Just i
+        f (Abs _ _ (Var _)) i = Just i
+        f (Nat (Abs _ _ t')) i = f t' (i + 1)
+        f (Abs _ _ t') i = f t' (i + 1)
+        f _ _ = Nothing
 
 colorTypeError :: TypeError -> String
 colorTypeError (TypeMismatch a b) =
@@ -39,8 +60,9 @@ colorTypeError (TypeNonFunApp a b) =
 
 prettyShowNameless :: Nameless -> String
 prettyShowNameless t =
-  colorTerm (restoreNames [] t) ++ "\n" ++
-  "   : " ++ colorType (typeOf [] t)
+  let ty = typeOf [] t
+  in colorTerm (restoreNames [] t) ty ++ "\n" ++
+  "   : " ++ colorType ty
 
 colorParseError :: String
 colorParseError = colorError "PARSE" "Could not parse input."

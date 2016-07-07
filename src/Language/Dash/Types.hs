@@ -6,7 +6,7 @@ data Term
   | App Term Term
   | TTrue
   | TFalse
-  | Nat Integer
+  | Nat Term
   deriving Eq
 
 instance Show Term where
@@ -39,7 +39,7 @@ data Nameless
   | NApp Nameless Nameless
   | NTrue
   | NFalse
-  | NNat Integer
+  | NNat Nameless
 
 instance Show Nameless where
   show (NVar s) = show s

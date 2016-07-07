@@ -57,7 +57,17 @@ bool = do
     _ -> fail "Boolean should be '!t' or '!f'"
 
 nat :: Parser Term
-nat = Nat . read <$> some digit
+nat = Nat . intToDash . read <$> some digit
+  where
+    intToDash :: Integer -> Term
+    intToDash 0 = Abs "0" TNat (Var "0")
+    intToDash x = Abs "0" TNat (intToDash (x - 1))
+
+    -- dashToInt :: Nameless -> Maybe Integer
+    -- dashToInt t = f t 0 where
+    --   f (NVar _) i  = Just i
+    --   f (NAbs _ _ t') i = f t' (i + 1)
+    --   f _ _             = Nothing
 
 apply :: Parser Term -> Parser Term
 apply p = p `chainr1` (spaces *> string "|" <* spaces >> return App)

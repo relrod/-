@@ -22,7 +22,7 @@ removeNames ctx (Abs s ty t) = NAbs s ty <$> (removeNames ((s, NameBind) : ctx) 
 removeNames ctx (App t1 t2) = NApp <$> (removeNames ctx t1) <*> (removeNames ctx t2)
 removeNames _ TTrue = return NTrue
 removeNames _ TFalse = return NFalse
-removeNames _ (Nat n) = return (NNat n)
+removeNames ctx (Nat n) = NNat <$> removeNames ctx n
 
 nextFresh :: Context -> String -> String
 nextFresh ctx s =
@@ -38,7 +38,7 @@ restoreNames ctx (NAbs s ty t) =
 restoreNames ctx (NApp t1 t2) = App (restoreNames ctx t1) (restoreNames ctx t2)
 restoreNames _ NTrue = TTrue
 restoreNames _ NFalse = TFalse
-restoreNames _ (NNat n) = Nat n
+restoreNames ctx (NNat n) = Nat (restoreNames ctx n)
 
 -- | List free variables in a named representation.
 fv :: Term -> [String]

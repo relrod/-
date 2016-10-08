@@ -78,6 +78,7 @@ isVal (NApp _ _) = True
 isVal NTrue = True
 isVal NFalse = True
 isVal (NNat _) = True
+isVal (NString _) = True
 isVal _ = False
 
 evaluate :: Nameless -> Nameless

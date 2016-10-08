@@ -83,3 +83,6 @@ parsePrint s =
         Right trm -> putStrLn . prettyShowNameless $ trm
         Left str -> putStrLn (colorError "SCOPE" str)
     _ -> putStrLn colorParseError
+
+printAST :: String -> IO ()
+printAST s = print $ parseString expr mempty s

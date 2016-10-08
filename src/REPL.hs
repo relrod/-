@@ -1,4 +1,5 @@
 import Control.Monad.IO.Class
+import Data.List (isPrefixOf)
 import System.Console.Haskeline
 --import Text.Trifecta
 
@@ -14,7 +15,9 @@ loop = do
   case input of
     Nothing -> return ()
     Just "quit" -> return ()
-    Just s -> liftIO (parseAndDisplayType s) >> loop
+    Just s
+      | ":ast " `isPrefixOf` s -> liftIO (printAST (drop 5 s)) >> loop
+      | otherwise -> liftIO (parseAndDisplayType s) >> loop
 
 main :: IO ()
 main = runInputT defaultSettings loop

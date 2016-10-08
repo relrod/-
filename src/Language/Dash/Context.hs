@@ -23,6 +23,7 @@ removeNames ctx (App t1 t2) = NApp <$> removeNames ctx t1 <*> removeNames ctx t2
 removeNames _ TTrue = return NTrue
 removeNames _ TFalse = return NFalse
 removeNames ctx (Nat n) = NNat <$> removeNames ctx n
+removeNames _ (TString s) = return (NString s)
 
 nextFresh :: Context -> String -> String
 nextFresh ctx s =
@@ -39,6 +40,7 @@ restoreNames ctx (NApp t1 t2) = App (restoreNames ctx t1) (restoreNames ctx t2)
 restoreNames _ NTrue = TTrue
 restoreNames _ NFalse = TFalse
 restoreNames ctx (NNat n) = Nat (restoreNames ctx n)
+restoreNames _ (NString s) = TString s
 
 -- | List free variables in a named representation.
 fv :: Term -> [String]
@@ -48,6 +50,7 @@ fv (App t1 t2) = fv t1 `union` fv t2
 fv TTrue = []
 fv TFalse = []
 fv (Nat _) = []
+fv (TString _) = []
 
 shift :: Int -> Int -> Nameless -> Nameless
 shift d c (NVar k) = if k < c then NVar k else NVar (k + d)
@@ -56,6 +59,7 @@ shift d c (NApp t1 t2) = NApp (shift d c t1) (shift d c t2)
 shift _ _ NTrue = NTrue
 shift _ _ NFalse = NFalse
 shift _ _ (NNat n) = NNat n
+shift _ _ (NString s) = NString s
 
 subst :: Int -> Nameless -> Nameless -> Nameless
 subst j s (NVar k) = if k == j then s else NVar k
@@ -64,6 +68,7 @@ subst j s (NApp t1 t2) = NApp (subst j s t1) (subst j s t2)
 subst _ _ NTrue = NTrue
 subst _ _ NFalse = NFalse
 subst _ _ (NNat n) = NNat n
+subst _ _ (NString s) = NString s
 
 betaReduce :: Nameless -> Nameless -> Nameless
 betaReduce t1 t2 = shift (-1) 0 (subst 0 (shift 1 0 t2) t1)

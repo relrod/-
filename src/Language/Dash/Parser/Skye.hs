@@ -16,11 +16,14 @@ typeBool = string "bool" >> return TBool
 typeNat :: Parser Type
 typeNat = string "nat" >> return TNat
 
+typeString :: Parser Type
+typeString = string "string" >> return TyString
+
 function :: Parser Type -> Parser Type
 function p = p `chainr1` (string "=>" >> return TAbs)
 
 type' :: Parser Type
-type' = function $ choice [typeBool, typeNat]
+type' = function $ choice [typeBool, typeNat, typeString]
 
 variable :: Parser (String, Type)
 variable = do
@@ -63,6 +66,13 @@ nat = Nat . intToDash . read <$> some digit
     intToDash 0 = Abs "0" TNat (Var "0")
     intToDash x = Abs "0" TNat (intToDash (x - 1))
 
+stringLit :: Parser Term
+stringLit = do
+  _ <- char '"'
+  -- TODO: Escaping
+  s <- manyTill anyChar (try (char '"'))
+  return (TString s)
+
 apply :: Parser Term -> Parser Term
 apply p = p `chainr1` (spaces *> string "|" <* spaces >> return App)
 
@@ -70,8 +80,8 @@ expr :: Parser Term
 expr = buildExpressionParser table thing
         <?> "expression"
 
-table  :: [[Operator Parser Term]]
-table   = [ [ Infix (App <$ reserve emptyOps "|") AssocLeft ] ]
+table :: [[Operator Parser Term]]
+table = [ [ Infix (App <$ reserve emptyOps "|") AssocLeft ] ]
 
 thing :: Parser Term
 thing =
@@ -80,4 +90,5 @@ thing =
          , fmap (Var . fst) variable
          , bool
          , nat
+         , stringLit
          ]

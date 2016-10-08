@@ -50,9 +50,11 @@ colorTerm n t ty =
         f _ _ = Nothing
 
     showBetaReduced (NApp _ _) =
-      let evaled = evaluate n
-          named = restoreNames [] evaled
-      in "\n  => " ++ colorTerm evaled named ty
+      case evaluate n of
+        Right evaled ->
+          let named = restoreNames [] evaled
+          in "\n  => " ++ colorTerm evaled named ty
+        Left s -> colorError "\nEVALUATION" s
     showBetaReduced _ = ""
 
 colorTypeError :: TypeError -> String

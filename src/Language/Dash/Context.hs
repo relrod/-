@@ -81,13 +81,17 @@ isVal (NNat _) = True
 isVal (NString _) = True
 isVal _ = False
 
-evaluate :: Nameless -> Nameless
+evaluate :: Nameless -> Either String Nameless
 evaluate (NApp (NAbs _ _ t1) t2)
-  | isVal t2 = betaReduce t1 t2
+  | isVal t2 = Right $ betaReduce t1 t2
 evaluate (NApp t1 t2)
-  | isVal t1 = NApp t1 (evaluate t2)
-evaluate (NApp t1 t2) = NApp (evaluate t1) t2
-evaluate x = error $ "No rule applies for " ++ show x
+  | isVal t1 = do
+      t2' <- evaluate t2
+      return $ NApp t1 t2'
+evaluate (NApp t1 t2) = do
+  t1' <- evaluate t1
+  return $ NApp t1' t2
+evaluate x = Left ("No evaluation rule applies for " ++ show x)
 
 --evaluate :: Nameless -> Nameless
 --evaluate t = let t' = evaluate' t

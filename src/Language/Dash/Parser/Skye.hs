@@ -10,20 +10,18 @@ import Text.Trifecta
 
 import Language.Dash.Types
 
-typeBool :: Parser Type
-typeBool = string "bool" >> return TBool
-
-typeNat :: Parser Type
-typeNat = string "nat" >> return TNat
-
-typeString :: Parser Type
-typeString = string "string" >> return TyString
+typeNameToType :: [(String, Type)]
+typeNameToType = [ ("bool", TBool)
+                 , ("nat", TNat)
+                 , ("string", TyString)
+                 ]
 
 function :: Parser Type -> Parser Type
 function p = p `chainr1` (string "=>" >> return TAbs)
 
 type' :: Parser Type
-type' = function $ choice [typeBool, typeNat, typeString]
+type' =
+  function $ choice (fmap (\(ts, tt) -> string ts >> return tt) typeNameToType)
 
 variable :: Parser (String, Type)
 variable = do

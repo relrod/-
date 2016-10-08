@@ -18,8 +18,8 @@ unsafeCtx ctx str =
 -- | Convert a 'Term' to de Bruijn indexing ('Nameless')
 removeNames :: Context -> Term -> Either String Nameless
 removeNames ctx (Var s) = NVar <$> unsafeCtx ctx s
-removeNames ctx (Abs s ty t) = NAbs s ty <$> (removeNames ((s, NameBind) : ctx) t)
-removeNames ctx (App t1 t2) = NApp <$> (removeNames ctx t1) <*> (removeNames ctx t2)
+removeNames ctx (Abs s ty t) = NAbs s ty <$> removeNames ((s, NameBind) : ctx) t
+removeNames ctx (App t1 t2) = NApp <$> removeNames ctx t1 <*> removeNames ctx t2
 removeNames _ TTrue = return NTrue
 removeNames _ TFalse = return NFalse
 removeNames ctx (Nat n) = NNat <$> removeNames ctx n
@@ -50,7 +50,7 @@ fv TFalse = []
 fv (Nat _) = []
 
 shift :: Int -> Int -> Nameless -> Nameless
-shift d c (NVar k) = if k < c then (NVar k) else NVar (k + d)
+shift d c (NVar k) = if k < c then NVar k else NVar (k + d)
 shift d c (NAbs s ty t) = NAbs s ty (shift d (c + 1) t)
 shift d c (NApp t1 t2) = NApp (shift d c t1) (shift d c t2)
 shift _ _ NTrue = NTrue

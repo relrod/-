@@ -15,7 +15,7 @@ fun x:nat y:nat := x:nat.
 ### Function application
 
 ```ocaml
-(fun x:nat := x:nat) | 3   (* 3 *)
+(fun x:nat := x:nat) | 3.   (* 3 *)
 ```
 
 ### Global context insertion

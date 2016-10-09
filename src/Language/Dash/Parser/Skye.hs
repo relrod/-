@@ -1,6 +1,6 @@
 module Language.Dash.Parser.Skye where
 
-import Control.Applicative ((<$>), (<*), (<$))
+import Control.Applicative ((<$>), (<*), (*>), (<$))
 import Control.Monad (void)
 import Text.Parser.Char
 import Text.Parser.Combinators

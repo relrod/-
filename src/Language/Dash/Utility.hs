@@ -37,17 +37,12 @@ colorTerm n t ty =
              Nothing -> ""
       else ""
 
-    -- This is somewhat hacky. We should probably just lose the "Nat"
-    -- constructor. We have types implemented, so we don't really need it for
-    -- tracking anymore.
     unNat :: Term -> Maybe Integer
-    unNat tt = f tt 0
-      where
-        f (Nat (Abs _ _ (Var _))) i = Just i
-        f (Abs _ _ (Var _)) i = Just i
-        f (Nat (Abs _ _ t')) i = f t' (i + 1)
-        f (Abs _ _ t') i = f t' (i + 1)
-        f _ _ = Nothing
+    unNat Zero = Just 0
+    unNat (Succ nn) = do
+      x <- unNat nn
+      return (1 + x)
+    unNat _ = Nothing
 
     showBetaReduced (NApp _ _) =
       case evaluate n of

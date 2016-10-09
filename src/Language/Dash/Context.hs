@@ -22,7 +22,8 @@ removeNames ctx (Abs s ty t) = NAbs s ty <$> removeNames ((s, NameBind) : ctx) t
 removeNames ctx (App t1 t2) = NApp <$> removeNames ctx t1 <*> removeNames ctx t2
 removeNames _ TTrue = return NTrue
 removeNames _ TFalse = return NFalse
-removeNames ctx (Nat n) = NNat <$> removeNames ctx n
+removeNames ctx (Succ n) = NSucc <$> removeNames ctx n
+removeNames _ Zero = return NZero
 removeNames _ (TString s) = return (NString s)
 
 nextFresh :: Context -> String -> String
@@ -39,7 +40,8 @@ restoreNames ctx (NAbs s ty t) =
 restoreNames ctx (NApp t1 t2) = App (restoreNames ctx t1) (restoreNames ctx t2)
 restoreNames _ NTrue = TTrue
 restoreNames _ NFalse = TFalse
-restoreNames ctx (NNat n) = Nat (restoreNames ctx n)
+restoreNames ctx (NSucc n) = Succ (restoreNames ctx n)
+restoreNames _ NZero = Zero
 restoreNames _ (NString s) = TString s
 
 -- | List free variables in a named representation.
@@ -49,7 +51,8 @@ fv (Abs s _ t) = fv t \\ [s]
 fv (App t1 t2) = fv t1 `union` fv t2
 fv TTrue = []
 fv TFalse = []
-fv (Nat _) = []
+fv (Succ _) = []
+fv Zero = []
 fv (TString _) = []
 
 shift :: Int -> Int -> Nameless -> Nameless
@@ -58,7 +61,8 @@ shift d c (NAbs s ty t) = NAbs s ty (shift d (c + 1) t)
 shift d c (NApp t1 t2) = NApp (shift d c t1) (shift d c t2)
 shift _ _ NTrue = NTrue
 shift _ _ NFalse = NFalse
-shift _ _ (NNat n) = NNat n
+shift _ _ (NSucc n) = NSucc n
+shift _ _ NZero = NZero
 shift _ _ (NString s) = NString s
 
 subst :: Int -> Nameless -> Nameless -> Nameless
@@ -67,7 +71,8 @@ subst j s (NAbs s' ty t1) = NAbs s' ty (subst (j + 1) (shift 1 0 s) t1)
 subst j s (NApp t1 t2) = NApp (subst j s t1) (subst j s t2)
 subst _ _ NTrue = NTrue
 subst _ _ NFalse = NFalse
-subst _ _ (NNat n) = NNat n
+subst _ _ (NSucc n) = NSucc n
+subst _ _ NZero = NZero
 subst _ _ (NString s) = NString s
 
 betaReduce :: Nameless -> Nameless -> Nameless
@@ -77,7 +82,8 @@ isVal :: Nameless -> Bool
 isVal (NApp _ _) = True
 isVal NTrue = True
 isVal NFalse = True
-isVal (NNat _) = True
+isVal (NSucc _) = True
+isVal NZero = True
 isVal (NString _) = True
 isVal _ = False
 

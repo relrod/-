@@ -6,7 +6,8 @@ data Term
   | App Term Term
   | TTrue
   | TFalse
-  | Nat Term
+  | Zero
+  | Succ Term
   | TString String
   deriving Eq
 
@@ -16,7 +17,8 @@ instance Show Term where
   show (App t1 t2) = "(" ++ show t1 ++ ") " ++ show t2
   show TTrue = "!t"
   show TFalse = "!f"
-  show (Nat n) = show n
+  show Zero = "0"
+  show (Succ n) = "Succ (" ++ show n ++ ")"
   show (TString s) = "\"" ++ s ++ "\""
 
 data Binding
@@ -43,7 +45,8 @@ data Nameless
   | NApp Nameless Nameless
   | NTrue
   | NFalse
-  | NNat Nameless
+  | NZero
+  | NSucc Nameless
   | NString String
 
 instance Show Nameless where
@@ -52,7 +55,8 @@ instance Show Nameless where
   show (NApp t1 t2) = show t1 ++ " " ++ show t2
   show NTrue = "!t"
   show NFalse = "!f"
-  show (NNat n) = show n
+  show NZero = "0"
+  show (NSucc n) = "NSucc (" ++ show n ++ ")"
   show (NString s) = "\"" ++ s ++ "\""
 
 instance Eq Nameless where
@@ -61,7 +65,8 @@ instance Eq Nameless where
   NApp t1 t2 == NApp t3 t4 = t1 == t3 && t2 == t4
   NTrue == NTrue = True
   NFalse == NFalse = True
-  NNat n == NNat m = n == m
+  NZero == NZero = True
+  NSucc n == NSucc m = n == m
   NString s1 == NString s2 = s1 == s2
   _ == _ = False
 

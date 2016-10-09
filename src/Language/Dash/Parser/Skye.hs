@@ -58,11 +58,11 @@ bool = do
     _ -> fail "Boolean should be '!t' or '!f'"
 
 nat :: Parser Term
-nat = Nat . intToDash . read <$> some digit
+nat = intToDash . read <$> some digit
   where
     intToDash :: Integer -> Term
-    intToDash 0 = Abs "0" TNat (Var "0")
-    intToDash x = Abs "0" TNat (intToDash (x - 1))
+    intToDash 0 = Zero
+    intToDash x = Succ (intToDash (x - 1))
 
 stringLit :: Parser Term
 stringLit = do

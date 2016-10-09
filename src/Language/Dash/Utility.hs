@@ -1,5 +1,7 @@
 module Language.Dash.Utility where
 
+import Control.Applicative ((<$>))
+import Data.Monoid (mempty)
 import System.Console.ANSI
 import Text.Trifecta
 

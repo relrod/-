@@ -1,6 +1,7 @@
 -- | Functions for dealing with context and conversions between representations.
 module Language.Dash.Context where
 
+import Control.Applicative
 import Data.List ((\\), elemIndex, union)
 
 import Language.Dash.Types

@@ -1,6 +1,6 @@
 module Language.Dash.Parser.Skye where
 
-import Control.Applicative ((<$>), (<*), (*>), (<$))
+import Control.Applicative ((<$>), (<*), (*>), (<$), (<|>))
 import Control.Monad (void)
 import Text.Parser.Char
 import Text.Parser.Combinators
@@ -65,11 +65,23 @@ nat = intToDash . read <$> some digit
     intToDash 0 = Zero
     intToDash x = Succ (intToDash (x - 1))
 
+escapedChar :: Parser String
+escapedChar = do
+    d <- char '\\'
+    c <- oneOf "\\\"0nrvtbf"
+    return [d, c]
+
+nonEscapedChar :: Parser Char
+nonEscapedChar = noneOf "\\\"\0\n\r\v\t\b\f"
+
+strChar :: Parser String
+strChar = fmap return nonEscapedChar <|> escapedChar
+
 stringLit :: Parser Term
 stringLit = do
   _ <- char '"'
-  -- TODO: Escaping
-  s <- manyTill anyChar (try (char '"'))
+  s <- concat <$> many strChar
+  _ <- char '"'
   return (TString s)
 
 apply :: Parser Term -> Parser Term
